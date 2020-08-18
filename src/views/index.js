@@ -3,6 +3,7 @@ import "./index.scss";
 import _ from "lodash";
 import { createFFmpeg } from "@ffmpeg/ffmpeg";
 import { rename } from "../utils";
+import TagForm from "./tag-form/index.js";
 const ffmpeg = createFFmpeg({
   log: true,
 });
@@ -78,7 +79,10 @@ const IndexView = () => {
 
     await ffmpeg.load();
     await ffmpeg.write("input.wav", arraybuffer);
-    const t = await ffmpeg.transcode("input.wav", fileName);
+    await ffmpeg.transcode("input.wav", fileName);
+
+    // remove the temp input file
+    await ffmpeg.remove(tempFileName);
 
     const data = ffmpeg.read(fileName);
     const url = URL.createObjectURL(
@@ -104,6 +108,43 @@ const IndexView = () => {
     };
     reader.readAsArrayBuffer(file);
   }
+
+  const handleSaveTags = (origName) => async (tags) => {
+    // filename that is stored in memory after transcode completed
+    // should be able to read / write to the file.
+    const nameInFFMpegMemory = rename(origName);
+
+    // -metadata title="Track Title" -metadata artist="Rockstar" ... etc.
+    const options = _.map(
+      _.filter(tags, (t) => t.value),
+      (t) => {
+        return `-metadata ${t.key}=${t.value}`;
+      }
+    );
+
+    const tempFileName = "temp_" + nameInFFMpegMemory;
+
+    const args = _.join(
+      ["-i", nameInFFMpegMemory, ...options, tempFileName],
+      " "
+    );
+
+    // save the tags to a new file, e.g. "temp_filename.mp3"
+    await ffmpeg.run(args);
+
+    // remove the old file
+    await ffmpeg.remove(nameInFFMpegMemory);
+
+    // rename the temp file
+    await ffmpeg.write(nameInFFMpegMemory, nameInFFMpegMemory);
+
+    // remove the temp file
+    await ffmpeg.remove(tempFileName);
+
+    // list files in memory for debugging
+    const listFiles = await ffmpeg.ls("/");
+    console.log(listFiles);
+  };
 
   const isFileProcessing = _.some(converted, (c) => c.progress);
 
@@ -137,10 +178,13 @@ const IndexView = () => {
                   {c.error && <div>Error</div>}
                   {c.progress && <div>Converting...</div>}
                   {c.completed && (
-                    <a href={c.url} download={c.fileName}>
-                      Download {c.fileName}
-                    </a>
+                    <>
+                      <a href={c.url} download={c.fileName}>
+                        Download {c.fileName}
+                      </a>
+                    </>
                   )}
+                  <TagForm onSaveTags={handleSaveTags(c.origName)} />
                 </li>
               );
             })}

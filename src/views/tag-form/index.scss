@@ -1,0 +1,14 @@
+.tag-form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.tag-input-label {
+  width: 49%;
+  display: flex;
+  justify-content: space-between;
+  input {
+    margin-left: 12px;
+    flex-grow: 2;
+  }
+}
