@@ -1,0 +1,81 @@
+@use "../css/colors";
+
+#index-view {
+  display: grid;
+  grid-template-rows: 100px auto;
+  grid-template-columns: 1fr 35%;
+  height: 100vh;
+
+  header {
+    grid-column: span 2;
+    background-color: colors.$backgroundMedium;
+    padding: 20px;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  input {
+    border: 1px solid colors.$backgroundLight;
+    padding: 32px;
+    margin-top: 32px;
+    color: colors.$colorLight;
+  }
+
+  .panel {
+    height: calc(100vh - 104px);
+  }
+
+  .convert-list {
+    background: blue;
+    overflow-y: scroll;
+    height: 100%;
+    background-color: colors.$backgroundDark;
+    text-align: center;
+    li {
+      margin: 8px;
+      padding: 8px;
+      border: 1px solid colors.$backgroundLight;
+      background-color: colors.$backgroundMedium;
+      color: colors.$colorDark;
+      div {
+        padding: 6px;
+      }
+    }
+    a {
+      padding: 8px 20px;
+      background-color: colors.$backgroundMedium;
+      color: colors.$colorLight;
+      margin-top: 4px;
+      display: inline-block;
+    }
+    a:hover {
+      background-color: colors.$backgroundLight;
+    }
+  }
+  .no-converts-message {
+    text-align: center;
+    margin: 32px 0;
+  }
+
+  .log-list {
+    overflow-y: scroll;
+    background: orange;
+    color: green;
+    height: 100%;
+    background-color: colors.$backgroundDark;
+    font-size: 11px;
+    ul {
+      padding: 8px;
+    }
+  }
+}
+
+.page {
+  display: grid;
+  grid-template-rows: 100px auto;
+  grid-template-columns: 300px 1fr;
+  height: 100vh;
+}

@@ -1,0 +1,27 @@
+@use "./colors";
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "Poppins", cursive;
+  background-color: colors.$backgroundDark;
+  color: colors.$colorMedium;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: colors.$colorMedium;
+}
+
+a,
+a:visited {
+  color: colors.$colorLight;
+}
