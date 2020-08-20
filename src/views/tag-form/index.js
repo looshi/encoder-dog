@@ -38,7 +38,7 @@ const TagForm = ({ onSaveTags }) => {
     <div className="tag-form">
       {_.map(tags, (t) => {
         return (
-          <label className="tag-input-label">
+          <label className="tag-input-label" key={t.label}>
             {t.label}
             <input type="text" onChange={handleTagChange(t.key)} />
           </label>

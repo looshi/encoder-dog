@@ -26,7 +26,7 @@ function reducer(state, action) {
         if (s.origName === action.payload.origName) {
           return {
             origName: action.payload.origName,
-            fileName: action.payload.fileName,
+            fileName: rename(action.payload.origName),
             progress: false,
             completed: true,
             error: false,
@@ -64,25 +64,20 @@ const IndexView = () => {
     setLogged([{ msg, timestamp: Date.now() }, ...logged]);
   };
 
-  async function convert(arraybuffer, file) {
-    let fileName = rename(file.name);
-
+  async function encodeToMp3(arraybuffer, file) {
     const convert = {
       origName: file.name,
-      fileName,
-      progress: true,
-      completed: false,
-      error: false,
       url: null,
     };
     dispatch({ type: "STARTED", payload: convert });
 
+    const fileName = rename(file.name);
     await ffmpeg.load();
     await ffmpeg.write("input.wav", arraybuffer);
     await ffmpeg.transcode("input.wav", fileName);
 
     // remove the temp input file
-    await ffmpeg.remove(tempFileName);
+    await ffmpeg.remove("input.wav");
 
     const data = ffmpeg.read(fileName);
     const url = URL.createObjectURL(
@@ -92,13 +87,13 @@ const IndexView = () => {
     dispatch({ type: "COMPLETED", payload: { ...convert, url } });
   }
 
-  function handleFileChange(e) {
+  function handleAudioFileSelected(e) {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = async function () {
-      convert(this.result, file);
+    reader.onload = function () {
+      encodeToMp3(this.result, file);
     };
     reader.onerror = function (e) {
       console.log("Error, could not read file ", e);
@@ -114,36 +109,37 @@ const IndexView = () => {
     // should be able to read / write to the file.
     const nameInFFMpegMemory = rename(origName);
 
-    // -metadata title="Track Title" -metadata artist="Rockstar" ... etc.
+    // -metadata title="Track Title" -metadata artist="Eduard Artemyev" ... etc.
     const options = _.map(
       _.filter(tags, (t) => t.value),
       (t) => {
-        return `-metadata ${t.key}=${t.value}`;
+        return `-metadata "${t.key}=${t.value}"`;
       }
     );
 
     const tempFileName = "temp_" + nameInFFMpegMemory;
 
-    const args = _.join(
-      ["-i", nameInFFMpegMemory, ...options, tempFileName],
-      " "
-    );
-
-    // save the tags to a new file, e.g. "temp_filename.mp3"
-    await ffmpeg.run(args);
-
-    // remove the old file
-    await ffmpeg.remove(nameInFFMpegMemory);
-
-    // rename the temp file
-    await ffmpeg.write(nameInFFMpegMemory, nameInFFMpegMemory);
-
-    // remove the temp file
-    await ffmpeg.remove(tempFileName);
-
-    // list files in memory for debugging
+    // remove the temp file ( if exists )
     const listFiles = await ffmpeg.ls("/");
-    console.log(listFiles);
+    if (_.includes(listFiles, tempFileName)) {
+      await ffmpeg.remove(tempFileName);
+    }
+
+    const args = [
+      "-i",
+      nameInFFMpegMemory,
+      ...options,
+      "-c copy",
+      tempFileName,
+    ];
+    await ffmpeg.run(_.join(args, " "));
+
+    // write the file to the object url for the download link
+    const data = ffmpeg.read(tempFileName);
+    const url = URL.createObjectURL(
+      new Blob([data.buffer], { type: "audio/mpeg" })
+    );
+    dispatch({ type: "COMPLETED", payload: { origName, url } });
   };
 
   const isFileProcessing = _.some(converted, (c) => c.progress);
@@ -166,14 +162,14 @@ const IndexView = () => {
             id="file-input"
             type="file"
             accept=".wav,.aiff"
-            onChange={handleFileChange}
+            onChange={handleAudioFileSelected}
             disabled={isFileProcessing}
           />
 
           <ul>
             {_.map(converted, (c) => {
               return (
-                <li key={c.fileName}>
+                <li key={c.origName}>
                   <div>{c.origName}</div>
                   {c.error && <div>Error</div>}
                   {c.progress && <div>Converting...</div>}
