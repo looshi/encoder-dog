@@ -71,6 +71,12 @@
       padding: 8px;
     }
   }
+
+  .album-image {
+    height: 200px;
+    width: 200px;
+    object-fit: scale-down;
+  }
 }
 
 .page {

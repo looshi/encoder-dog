@@ -25,12 +25,23 @@ function reducer(state, action) {
       return _.map(state, (s) => {
         if (s.origName === action.payload.origName) {
           return {
+            ...s,
             origName: action.payload.origName,
             fileName: renameExtensionToMp3(action.payload.origName),
             progress: false,
             completed: true,
             error: false,
             url: action.payload.url,
+          };
+        }
+        return s;
+      });
+    case "IMAGE_READY_FOR_DISPLAY":
+      return _.map(state, (s) => {
+        if (s.origName === action.payload.origName) {
+          return {
+            ...s,
+            img: action.payload.dataUrl,
           };
         }
         return s;
@@ -98,16 +109,13 @@ const IndexView = () => {
     reader.onerror = function (e) {
       console.log("Error, could not read file ", e);
     };
-    reader.onprogress = function (event) {
-      console.log(`Loading ${file.name}... `, event.loaded, event);
-    };
     reader.readAsArrayBuffer(file);
   }
 
   const handleSaveTags = (origName) => async (tags) => {
     // filename that is stored in memory after transcode completed
     // should be able to read / write to the file.
-    const nameInFFMpegMemory = renameExtensionToMp3(origName);
+    const mp3FileName = renameExtensionToMp3(origName);
 
     // -metadata title="Track Title" -metadata artist="Eduard Artemyev" ... etc.
     const options = _.map(
@@ -117,7 +125,7 @@ const IndexView = () => {
       }
     );
 
-    const tempFileName = "temp_" + nameInFFMpegMemory;
+    const tempFileName = "temp_" + mp3FileName;
 
     // remove the temp file ( if exists )
     const listFiles = await ffmpeg.ls("/");
@@ -125,14 +133,18 @@ const IndexView = () => {
       await ffmpeg.remove(tempFileName);
     }
 
+    // Add image ( if exists )
+    const imageFileName = `${origName}__image`;
+    const hasImage = _.includes(listFiles, imageFileName);
+
     const args = [
-      "-i",
-      nameInFFMpegMemory,
+      `-i ${mp3FileName}`,
+      hasImage ? `-i ${imageFileName} -map 0:0 -map 1:0` : null,
       ...options,
       "-c copy",
       tempFileName,
     ];
-    await ffmpeg.run(_.join(args, " "));
+    await ffmpeg.run(_.join(_.compact(args), " "));
 
     // write the file to the object url for the download link
     const data = ffmpeg.read(tempFileName);
@@ -140,6 +152,29 @@ const IndexView = () => {
       new Blob([data.buffer], { type: "audio/mpeg" })
     );
     dispatch({ type: "COMPLETED", payload: { origName, url } });
+  };
+
+  const onImageReadyForEncoding = (origName) => async (arraybuffer, file) => {
+    // Write image file to "disk" with the corresponding audio filename
+    // prepended.  e.g. "mysong.wav__image".
+    // Later when the user clicks save the image can be looked up by its
+    // corresponding audio file's name.
+
+    const imageFileName = `${origName}__image`;
+    // Remove the last image file for this audio ( if exists )
+    const listFiles = await ffmpeg.ls("/");
+    if (_.includes(listFiles, imageFileName)) {
+      await ffmpeg.remove(imageFileName);
+    }
+
+    await ffmpeg.write(imageFileName, arraybuffer);
+  };
+
+  const onImageReadyForDisplay = (origName) => (dataUrl) => {
+    dispatch({
+      type: "IMAGE_READY_FOR_DISPLAY",
+      payload: { origName, dataUrl },
+    });
   };
 
   const isFileProcessing = _.some(converted, (c) => c.progress);
@@ -180,7 +215,14 @@ const IndexView = () => {
                       </a>
                     </>
                   )}
-                  <TagForm onSaveTags={handleSaveTags(c.origName)} />
+                  <TagForm
+                    onSaveTags={handleSaveTags(c.origName)}
+                    onImageReadyForEncoding={onImageReadyForEncoding(
+                      c.origName
+                    )}
+                    onImageReadyForDisplay={onImageReadyForDisplay(c.origName)}
+                  />
+                  <img src={c.img} className="album-image" />
                 </li>
               );
             })}
