@@ -2,7 +2,7 @@ import React, { useState, useReducer } from "react";
 import "./index.scss";
 import _ from "lodash";
 import { createFFmpeg } from "@ffmpeg/ffmpeg";
-import { rename } from "../utils";
+import { renameExtensionToMp3 } from "../utils";
 import TagForm from "./tag-form/index.js";
 const ffmpeg = createFFmpeg({
   log: true,
@@ -26,7 +26,7 @@ function reducer(state, action) {
         if (s.origName === action.payload.origName) {
           return {
             origName: action.payload.origName,
-            fileName: rename(action.payload.origName),
+            fileName: renameExtensionToMp3(action.payload.origName),
             progress: false,
             completed: true,
             error: false,
@@ -71,7 +71,7 @@ const IndexView = () => {
     };
     dispatch({ type: "STARTED", payload: convert });
 
-    const fileName = rename(file.name);
+    const fileName = renameExtensionToMp3(file.name);
     await ffmpeg.load();
     await ffmpeg.write("input.wav", arraybuffer);
     await ffmpeg.transcode("input.wav", fileName);
@@ -107,7 +107,7 @@ const IndexView = () => {
   const handleSaveTags = (origName) => async (tags) => {
     // filename that is stored in memory after transcode completed
     // should be able to read / write to the file.
-    const nameInFFMpegMemory = rename(origName);
+    const nameInFFMpegMemory = renameExtensionToMp3(origName);
 
     // -metadata title="Track Title" -metadata artist="Eduard Artemyev" ... etc.
     const options = _.map(

@@ -1,8 +1,7 @@
 import _ from "lodash";
 
-export function rename(filename) {
+export function renameExtensionToMp3(filename) {
   if (filename.indexOf(".") !== -1) {
-    // strips extension and adds "mp3"
     filename = filename.split(".").slice(0, -1).concat("mp3").join(".");
     // replaces white spaces with underscore
     filename = _.join(_.split(filename, " "), "_");
