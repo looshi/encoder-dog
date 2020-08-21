@@ -27,5 +27,22 @@
     "sass": "^1.26.10"
   },
   "private": true,
-  "devDependencies": {}
+  "devDependencies": {
+    "eslint": "^7.7.0",
+    "eslint-plugin-jsx-a11y": "^6.3.1",
+    "eslint-plugin-react": "^7.20.6"
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "ecmaVersion": 2018,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "jsx": true
+      }
+    },
+    "extends": [
+      "plugin:react/recommended",
+      "plugin:jsx-a11y/recommended"
+    ]
+  }
 }

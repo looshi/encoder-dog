@@ -27,12 +27,27 @@
     background-color: colors.$backgroundDark;
     text-align: center;
     li {
+      position: relative;
       margin: 8px;
       padding: 32px;
       border: 1px solid colors.$colorDark;
       border-radius: 3px;
       background-color: colors.$backgroundMedium;
       color: colors.$colorDark;
+    }
+    .converting-message {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0.8;
+      background-color: #c5b0c2;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      color: white;
+      font-size: 26px;
     }
     a {
       padding: 8px 20px;

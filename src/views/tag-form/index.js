@@ -1,41 +1,29 @@
 import React, { useState } from "react";
+import PropTypes from "prop-types";
 import _ from "lodash";
 import "./index.scss";
 
 const TagForm = ({
   origName,
   onSaveTags,
+  onTagChange,
   onImageReadyForEncoding,
   onImageReadyForDisplay,
+  onCopyPreviousTags,
   imgSrc,
   isComplete,
   mp3Name,
+  tags,
+  isCopyButtonVisible,
 }) => {
-  const initialTags = [
-    { label: "Artist", key: "artist" },
-    { label: "Album", key: "album" },
-    { label: "Year", key: "date" },
-    { label: "Genre", key: "genre" },
-    { label: "Track Number", key: "track" },
-    { label: "Disc Number", key: "disc" },
-    { label: "Comments", key: "comment" },
-    { label: "Description", key: "description" },
-    { label: "Album Artist", key: "album_artist" },
-    { label: "Grouping", key: "grouping" },
-    { label: "Composer", key: "composer" },
-    { label: "Producer", key: "producer" },
-  ];
-
-  const [tags, setTags] = useState(initialTags);
-
   const handleTagChange = (key) => (event) => {
-    const updated = _.map(tags, (t) => {
+    const updatedTags = _.map(tags, (t) => {
       if (t.key === key) {
         return { ...t, value: event.target.value };
       }
       return t;
     });
-    setTags(updated);
+    onTagChange(updatedTags);
   };
 
   const handleSave = () => {
@@ -73,14 +61,20 @@ const TagForm = ({
           return (
             <label className="tag-input-label" key={t.label}>
               {t.label}
-              <input type="text" onChange={handleTagChange(t.key)} />
+              <input
+                type="text"
+                onChange={handleTagChange(t.key)}
+                value={t.value || ""}
+              />
             </label>
           );
         })}
       </div>
       <div className="image-input">
-        <img src={imgSrc} />
-        <label for="image-file-input">Select Image</label>
+        <div className="image-area">
+          {imgSrc && <img src={imgSrc} alt="album art" />}
+        </div>
+        <label htmlFor="image-file-input">Select Image</label>
         <input
           id="image-file-input"
           type="file"
@@ -88,15 +82,36 @@ const TagForm = ({
           onChange={handleImageFileSelected}
         />
       </div>
-      <button
-        disabled={!isComplete}
-        className="save-button"
-        onClick={handleSave}
-      >
-        Save {mp3Name}
-        {isComplete ? null : " (still processing...)"}
-      </button>
+      <div className="button-area">
+        {isCopyButtonVisible && (
+          <button className="copy-previous-button" onClick={onCopyPreviousTags}>
+            Copy Previous Metadata
+          </button>
+        )}
+        <button
+          disabled={!isComplete}
+          className="save-button"
+          onClick={handleSave}
+        >
+          Save {mp3Name}
+          {isComplete ? null : " (still processing...)"}
+        </button>
+      </div>
     </div>
   );
+};
+
+TagForm.propTypes = {
+  isCopyButtonVisible: PropTypes.bool.isRequired,
+  origName: PropTypes.string.isRequired,
+  onSaveTags: PropTypes.func.isRequired,
+  onTagChange: PropTypes.func.isRequired,
+  onImageReadyForEncoding: PropTypes.func.isRequired,
+  onImageReadyForDisplay: PropTypes.func.isRequired,
+  onCopyPreviousTags: PropTypes.func.isRequired,
+  imgSrc: PropTypes.string,
+  isComplete: PropTypes.bool.isRequired,
+  mp3Name: PropTypes.string.isRequired,
+  tags: PropTypes.array.isRequired,
 };
 export default TagForm;

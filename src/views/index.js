@@ -2,21 +2,27 @@ import React, { useState, useReducer } from "react";
 import "./index.scss";
 import _ from "lodash";
 import { createFFmpeg } from "@ffmpeg/ffmpeg";
-import { renameExtensionToMp3 } from "../utils";
+import { renameExtensionToMp3, startDownload } from "../utils";
 import TagForm from "./tag-form/index.js";
 const ffmpeg = createFFmpeg({
   log: true,
 });
 const consoleLog = window.console.log;
 
-function startDownload(data, fileName) {
-  const el = document.createElement("a");
-  el.setAttribute("href", data);
-  el.setAttribute("download", fileName);
-  document.body.appendChild(el);
-  el.click();
-  document.body.removeChild(el);
-}
+const initialTags = [
+  { label: "Artist", key: "artist" },
+  { label: "Album", key: "album" },
+  { label: "Year", key: "date" },
+  { label: "Genre", key: "genre" },
+  { label: "Track Number", key: "track" },
+  { label: "Disc Number", key: "disc" },
+  { label: "Comments", key: "comment" },
+  { label: "Description", key: "description" },
+  { label: "Album Artist", key: "album_artist" },
+  { label: "Grouping", key: "grouping" },
+  { label: "Composer", key: "composer" },
+  { label: "Producer", key: "producer" },
+];
 
 function reducer(state, action) {
   switch (action.type) {
@@ -28,6 +34,7 @@ function reducer(state, action) {
         complete: false,
         error: false,
         url: null,
+        tags: initialTags,
       };
       return [...state, item];
     case "COMPLETED":
@@ -53,6 +60,28 @@ function reducer(state, action) {
             img: action.payload.dataUrl,
           };
         }
+        return s;
+      });
+    case "TAG_CHANGED":
+      return _.map(state, (s) => {
+        if (s.origName === action.payload.origName) {
+          return {
+            ...s,
+            tags: action.payload.tags,
+          };
+        }
+        return s;
+      });
+    case "COPY_PREVIOUS_TAGS":
+      return _.map(state, (s, index) => {
+        if (s.origName === action.payload.origName) {
+          return {
+            ...s,
+            tags: [...state[index - 1].tags],
+            img: state[index - 1].img,
+          };
+        }
+
         return s;
       });
     case "ERROR":
@@ -121,7 +150,7 @@ const IndexView = () => {
     reader.readAsArrayBuffer(file);
   }
 
-  const handleSaveTags = (origName) => async (tags) => {
+  const onSaveTags = (origName) => async (tags) => {
     // filename that is stored in memory after transcode complete
     // should be able to read / write to the file.
     const mp3FileName = renameExtensionToMp3(origName);
@@ -181,6 +210,14 @@ const IndexView = () => {
     await ffmpeg.write(imageFileName, arraybuffer);
   };
 
+  const onTagChange = (origName) => (tags) => {
+    dispatch({ type: "TAG_CHANGED", payload: { origName, tags } });
+  };
+
+  const onCopyPreviousTags = (origName) => () => {
+    dispatch({ type: "COPY_PREVIOUS_TAGS", payload: { origName } });
+  };
+
   const onImageReadyForDisplay = (origName) => (dataUrl) => {
     dispatch({
       type: "IMAGE_READY_FOR_DISPLAY",
@@ -212,19 +249,25 @@ const IndexView = () => {
           )}
 
           <ul>
-            {_.map(converted, (c) => {
+            {_.map(converted, (c, index) => {
               return (
                 <li key={c.origName}>
                   {c.error && <div>Error</div>}
-                  {c.progress && <div>Converting...</div>}
+                  {c.progress && (
+                    <div className="converting-message">Converting...</div>
+                  )}
                   <TagForm
+                    isCopyButtonVisible={index > 0}
+                    tags={c.tags}
                     origName={c.origName}
                     mp3Name={renameExtensionToMp3(c.origName)}
-                    onSaveTags={handleSaveTags(c.origName)}
+                    onTagChange={onTagChange(c.origName)}
+                    onSaveTags={onSaveTags(c.origName)}
                     onImageReadyForEncoding={onImageReadyForEncoding(
                       c.origName
                     )}
                     onImageReadyForDisplay={onImageReadyForDisplay(c.origName)}
+                    onCopyPreviousTags={onCopyPreviousTags(c.origName)}
                     imgSrc={c.img}
                     isComplete={c.complete}
                   />
