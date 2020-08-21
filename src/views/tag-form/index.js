@@ -3,9 +3,13 @@ import _ from "lodash";
 import "./index.scss";
 
 const TagForm = ({
+  origName,
   onSaveTags,
   onImageReadyForEncoding,
   onImageReadyForDisplay,
+  imgSrc,
+  isComplete,
+  mp3Name,
 }) => {
   const initialTags = [
     { label: "Artist", key: "artist" },
@@ -63,21 +67,35 @@ const TagForm = ({
 
   return (
     <div className="tag-form">
-      {_.map(tags, (t) => {
-        return (
-          <label className="tag-input-label" key={t.label}>
-            {t.label}
-            <input type="text" onChange={handleTagChange(t.key)} />
-          </label>
-        );
-      })}
-      <input
-        id="image-file-input"
-        type="file"
-        accept=".gif,.png,.jpg"
-        onChange={handleImageFileSelected}
-      />
-      <button onClick={handleSave}>Save</button>
+      <div className="tags-input">
+        <label className="tag-input-label">{origName}</label>
+        {_.map(tags, (t) => {
+          return (
+            <label className="tag-input-label" key={t.label}>
+              {t.label}
+              <input type="text" onChange={handleTagChange(t.key)} />
+            </label>
+          );
+        })}
+      </div>
+      <div className="image-input">
+        <img src={imgSrc} />
+        <label for="image-file-input">Select Image</label>
+        <input
+          id="image-file-input"
+          type="file"
+          accept=".gif,.png,.jpg"
+          onChange={handleImageFileSelected}
+        />
+      </div>
+      <button
+        disabled={!isComplete}
+        className="save-button"
+        onClick={handleSave}
+      >
+        Save {mp3Name}
+        {isComplete ? null : " (still processing...)"}
+      </button>
     </div>
   );
 };

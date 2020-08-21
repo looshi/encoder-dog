@@ -1,14 +1,45 @@
+@use "../../css/colors";
+
 .tag-form {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
 }
-.tag-input-label {
+
+.tags-input {
   width: 49%;
+}
+.image-input {
+  width: 49%;
+  img {
+    height: 200px;
+    width: 200px;
+    object-fit: scale-down;
+    border: 1px dashed white;
+  }
+  label,
+  input {
+    width: 200px;
+    display: inline-block;
+    padding: 0;
+    margin-top: 12px;
+  }
+}
+.save-button {
+  width: 100%;
+  height: 2.6em;
+  margin: 16px 20% 0;
+  cursor: pointer;
+  background-color: colors.$colorLight;
+}
+.tag-input-label {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #2f373c;
+
   input {
-    margin-left: 12px;
-    flex-grow: 2;
+    width: 60%;
+    border-radius: 2px;
   }
 }

@@ -9,6 +9,15 @@ const ffmpeg = createFFmpeg({
 });
 const consoleLog = window.console.log;
 
+function startDownload(data, fileName) {
+  const el = document.createElement("a");
+  el.setAttribute("href", data);
+  el.setAttribute("download", fileName);
+  document.body.appendChild(el);
+  el.click();
+  document.body.removeChild(el);
+}
+
 function reducer(state, action) {
   switch (action.type) {
     case "STARTED":
@@ -16,11 +25,11 @@ function reducer(state, action) {
         origName: action.payload.origName,
         fileName: action.payload.fileName,
         progress: true,
-        completed: false,
+        complete: false,
         error: false,
         url: null,
       };
-      return [item, ...state];
+      return [...state, item];
     case "COMPLETED":
       return _.map(state, (s) => {
         if (s.origName === action.payload.origName) {
@@ -29,7 +38,7 @@ function reducer(state, action) {
             origName: action.payload.origName,
             fileName: renameExtensionToMp3(action.payload.origName),
             progress: false,
-            completed: true,
+            complete: true,
             error: false,
             url: action.payload.url,
           };
@@ -53,7 +62,7 @@ function reducer(state, action) {
             origName: action.payload.origName,
             fileName: action.payload.fileName,
             progress: false,
-            completed: false,
+            complete: false,
             error: true,
             url: null,
           };
@@ -113,7 +122,7 @@ const IndexView = () => {
   }
 
   const handleSaveTags = (origName) => async (tags) => {
-    // filename that is stored in memory after transcode completed
+    // filename that is stored in memory after transcode complete
     // should be able to read / write to the file.
     const mp3FileName = renameExtensionToMp3(origName);
 
@@ -152,6 +161,8 @@ const IndexView = () => {
       new Blob([data.buffer], { type: "audio/mpeg" })
     );
     dispatch({ type: "COMPLETED", payload: { origName, url } });
+
+    startDownload(url, mp3FileName);
   };
 
   const onImageReadyForEncoding = (origName) => async (arraybuffer, file) => {
@@ -189,44 +200,49 @@ const IndexView = () => {
         <div className="convert-list">
           {_.isEmpty(converted) && (
             <div className="no-converts-message">
-              Select a file to start encoding...
+              <div>Select a file to start encoding...</div>
+              <input
+                id="file-input"
+                type="file"
+                accept=".wav,.aiff"
+                onChange={handleAudioFileSelected}
+                disabled={isFileProcessing}
+              />
             </div>
           )}
-
-          <input
-            id="file-input"
-            type="file"
-            accept=".wav,.aiff"
-            onChange={handleAudioFileSelected}
-            disabled={isFileProcessing}
-          />
 
           <ul>
             {_.map(converted, (c) => {
               return (
                 <li key={c.origName}>
-                  <div>{c.origName}</div>
                   {c.error && <div>Error</div>}
                   {c.progress && <div>Converting...</div>}
-                  {c.completed && (
-                    <>
-                      <a href={c.url} download={c.fileName}>
-                        Download {c.fileName}
-                      </a>
-                    </>
-                  )}
                   <TagForm
+                    origName={c.origName}
+                    mp3Name={renameExtensionToMp3(c.origName)}
                     onSaveTags={handleSaveTags(c.origName)}
                     onImageReadyForEncoding={onImageReadyForEncoding(
                       c.origName
                     )}
                     onImageReadyForDisplay={onImageReadyForDisplay(c.origName)}
+                    imgSrc={c.img}
+                    isComplete={c.complete}
                   />
-                  <img src={c.img} className="album-image" />
                 </li>
               );
             })}
           </ul>
+          {!_.isEmpty(converted) && !isFileProcessing && (
+            <div className="no-converts-message">
+              <div>Select another file...</div>
+              <input
+                id="file-input"
+                type="file"
+                accept=".wav,.aiff"
+                onChange={handleAudioFileSelected}
+              />
+            </div>
+          )}
         </div>
       </div>
 

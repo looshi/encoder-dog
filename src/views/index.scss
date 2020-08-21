@@ -17,32 +17,22 @@
     padding: 0;
   }
 
-  input[type="file"] {
-    border: 1px solid colors.$backgroundLight;
-    padding: 32px;
-    margin-top: 32px;
-    color: colors.$colorLight;
-  }
-
   .panel {
     height: calc(100vh - 104px);
   }
 
   .convert-list {
-    background: blue;
     overflow-y: scroll;
     height: 100%;
     background-color: colors.$backgroundDark;
     text-align: center;
     li {
       margin: 8px;
-      padding: 8px;
-      border: 1px solid colors.$backgroundLight;
+      padding: 32px;
+      border: 1px solid colors.$colorDark;
+      border-radius: 3px;
       background-color: colors.$backgroundMedium;
       color: colors.$colorDark;
-      div {
-        padding: 6px;
-      }
     }
     a {
       padding: 8px 20px;
@@ -57,7 +47,13 @@
   }
   .no-converts-message {
     text-align: center;
-    margin: 32px 0;
+    margin: 32px auto;
+    border: 1px dashed colors.$colorLight;
+    padding: 32px;
+    width: 50%;
+    input {
+      margin-top: 16px;
+    }
   }
 
   .log-list {
@@ -70,12 +66,6 @@
     ul {
       padding: 8px;
     }
-  }
-
-  .album-image {
-    height: 200px;
-    width: 200px;
-    object-fit: scale-down;
   }
 }
 
