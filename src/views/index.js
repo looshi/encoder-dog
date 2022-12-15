@@ -1,11 +1,15 @@
 import React, { useState, useReducer } from "react";
 import "./index.scss";
 import _ from "lodash";
-import { createFFmpeg } from "@ffmpeg/ffmpeg";
+import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 import { renameExtensionToMp3, startDownload } from "../utils";
 import TagForm from "./tag-form/index.js";
+
+const path = new URL('./ffmpeg-core.js', document.location).href;
+console.log('loading ffmpeg from ', path);
 const ffmpeg = createFFmpeg({
-  log: true,
+  corePath: path,
+
 });
 const consoleLog = window.console.log;
 
@@ -43,7 +47,7 @@ function reducer(state, action) {
           return {
             ...s,
             origName: action.payload.origName,
-            fileName: renameExtensionToMp3(action.payload.origName),
+            fileName: action.payload.origName,
             progress: false,
             complete: true,
             error: false,
@@ -113,22 +117,35 @@ const IndexView = () => {
     setLogged([{ msg, timestamp: Date.now() }, ...logged]);
   };
 
-  async function encodeToMp3(arraybuffer, file) {
+  async function encodeToMp3(file) {
     const convert = {
       origName: file.name,
       url: null,
     };
     dispatch({ type: "STARTED", payload: convert });
 
-    const fileName = renameExtensionToMp3(file.name);
+    // const fileName = renameExtensionToMp3(file.name);
     await ffmpeg.load();
-    await ffmpeg.write("input.wav", arraybuffer);
-    await ffmpeg.transcode("input.wav", fileName);
+
+    // await ffmpeg.write("input.wav", arraybuffer);
+    // await ffmpeg.transcode("input.wav", fileName);
+
+    if (!ffmpeg.isLoaded()) {
+      await ffmpeg.load();
+    }
+
+
+    ffmpeg.FS('writeFile', file.name, await fetchFile(file))
+
+    // ffmpeg.FS('writeFile', 'input.wav', arraybuffer);
+    await ffmpeg.run('-i', file.name, `temp_${file.name}`);
+    //await fs.promises.writeFile('./test.mp4', ffmpeg.FS('readFile', 'test.mp4'));
+
 
     // remove the temp input file
-    await ffmpeg.remove("input.wav");
+    // await ffmpeg.remove("input.wav");
 
-    const data = ffmpeg.read(fileName);
+    const data = ffmpeg.FS('readFile', file.name);
     const url = URL.createObjectURL(
       new Blob([data.buffer], { type: "audio/mpeg" })
     );
@@ -137,23 +154,24 @@ const IndexView = () => {
   }
 
   function handleAudioFileSelected(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const filename = e.target.files[0];
+    if (!filename) return;
 
-    const reader = new FileReader();
-    reader.onload = function () {
-      encodeToMp3(this.result, file);
-    };
-    reader.onerror = function (e) {
-      console.log("Error, could not read file ", e);
-    };
-    reader.readAsArrayBuffer(file);
+    // const reader = new FileReader();
+    // reader.onload = function () {
+    //   encodeToMp3(this.result, file);
+    // };
+    // reader.onerror = function (e) {
+    //   console.log("Error, could not read file ", e);
+    // };
+    // reader.readAsArrayBuffer(file);
+    encodeToMp3(filename);
   }
 
   const onSaveTags = (origName) => async (tags) => {
     // filename that is stored in memory after transcode complete
     // should be able to read / write to the file.
-    const mp3FileName = renameExtensionToMp3(origName);
+    const mp3FileName = origName;
 
     // -metadata title="Track Title" -metadata artist="Eduard Artemyev" ... etc.
     const options = _.map(
@@ -166,10 +184,17 @@ const IndexView = () => {
     const tempFileName = "temp_" + mp3FileName;
 
     // remove the temp file ( if exists )
-    const listFiles = await ffmpeg.ls("/");
+    //const listFiles = await ffmpeg.run("ls", "/");
+
+    const listFiles = await ffmpeg.FS("readdir", "/");
+
+    console.log('--listFiles', listFiles);
+
     if (_.includes(listFiles, tempFileName)) {
-      await ffmpeg.remove(tempFileName);
+      await ffmpeg.FS("unlink", tempFileName);
     }
+
+
 
     // Add image ( if exists )
     const imageFileName = `${origName}__image`;
@@ -185,7 +210,8 @@ const IndexView = () => {
     await ffmpeg.run(_.join(_.compact(args), " "));
 
     // write the file to the object url for the download link
-    const data = ffmpeg.read(tempFileName);
+
+    const data = ffmpeg.FS('readFile', "./" + tempFileName);
     const url = URL.createObjectURL(
       new Blob([data.buffer], { type: "audio/mpeg" })
     );
@@ -202,7 +228,7 @@ const IndexView = () => {
 
     const imageFileName = `${origName}__image`;
     // Remove the last image file for this audio ( if exists )
-    const listFiles = await ffmpeg.ls("/");
+    const listFiles = await ffmpeg.FS("readdir", "/");
     if (_.includes(listFiles, imageFileName)) {
       await ffmpeg.remove(imageFileName);
     }
@@ -230,7 +256,8 @@ const IndexView = () => {
   return (
     <div id="index-view">
       <header>
-        <h1>Dog Encoder</h1>
+        <h1>Encode files to mp3 and add tags</h1>
+        <p><a href="https://github.com/looshi/encoder-dogView">Source on Github</a></p>
       </header>
 
       <div className="panel">
@@ -260,7 +287,7 @@ const IndexView = () => {
                     isCopyButtonVisible={index > 0}
                     tags={c.tags}
                     origName={c.origName}
-                    mp3Name={renameExtensionToMp3(c.origName)}
+                    mp3Name={c.origName}
                     onTagChange={onTagChange(c.origName)}
                     onSaveTags={onSaveTags(c.origName)}
                     onImageReadyForEncoding={onImageReadyForEncoding(
