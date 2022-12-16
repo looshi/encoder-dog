@@ -138,7 +138,8 @@ const IndexView = () => {
     ffmpeg.FS('writeFile', file.name, await fetchFile(file))
 
     // ffmpeg.FS('writeFile', 'input.wav', arraybuffer);
-    await ffmpeg.run('-i', file.name, `temp_${file.name}`);
+    const outputFileName = `output_${renameExtensionToMp3(file.name)}`;
+    await ffmpeg.run('-i', file.name, outputFileName);
     //await fs.promises.writeFile('./test.mp4', ffmpeg.FS('readFile', 'test.mp4'));
 
 
@@ -157,21 +158,12 @@ const IndexView = () => {
     const filename = e.target.files[0];
     if (!filename) return;
 
-    // const reader = new FileReader();
-    // reader.onload = function () {
-    //   encodeToMp3(this.result, file);
-    // };
-    // reader.onerror = function (e) {
-    //   console.log("Error, could not read file ", e);
-    // };
-    // reader.readAsArrayBuffer(file);
     encodeToMp3(filename);
   }
 
-  const onSaveTags = (origName) => async (tags) => {
+  const onSaveTags = (inputFileName) => async (tags) => {
     // filename that is stored in memory after transcode complete
     // should be able to read / write to the file.
-    const mp3FileName = origName;
 
     // -metadata title="Track Title" -metadata artist="Eduard Artemyev" ... etc.
     const options = _.map(
@@ -181,43 +173,33 @@ const IndexView = () => {
       }
     );
 
-    const tempFileName = "temp_" + mp3FileName;
-
-    // remove the temp file ( if exists )
-    //const listFiles = await ffmpeg.run("ls", "/");
-
+    const outputFileName = "output_" + renameExtensionToMp3(inputFileName);
     const listFiles = await ffmpeg.FS("readdir", "/");
 
     console.log('--listFiles', listFiles);
 
-    if (_.includes(listFiles, tempFileName)) {
-      await ffmpeg.FS("unlink", tempFileName);
-    }
-
-
-
     // Add image ( if exists )
-    const imageFileName = `${origName}__image`;
+    const imageFileName = `${inputFileName}__image`;
     const hasImage = _.includes(listFiles, imageFileName);
 
     const args = [
-      `-i ${mp3FileName}`,
+      `-i ${inputFileName}`,
       hasImage ? `-i ${imageFileName} -map 0:0 -map 1:0` : null,
       ...options,
       "-c copy",
-      tempFileName,
+      outputFileName,
     ];
     await ffmpeg.run(_.join(_.compact(args), " "));
 
     // write the file to the object url for the download link
 
-    const data = ffmpeg.FS('readFile', "./" + tempFileName);
+    const data = ffmpeg.FS('readFile', "./" + outputFileName);
     const url = URL.createObjectURL(
       new Blob([data.buffer], { type: "audio/mpeg" })
     );
-    dispatch({ type: "COMPLETED", payload: { origName, url } });
+    dispatch({ type: "COMPLETED", payload: { outputFileName, url } });
 
-    startDownload(url, mp3FileName);
+    startDownload(url, outputFileName);
   };
 
   const onImageReadyForEncoding = (origName) => async (arraybuffer, file) => {
