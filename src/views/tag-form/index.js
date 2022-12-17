@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import _ from "lodash";
 import "./index.scss";
+import { renameExtensionToMp3 } from "../../utils";
 
 const TagForm = ({
   origName,
@@ -13,6 +14,8 @@ const TagForm = ({
   imgSrc,
   imageFileName,
   isComplete,
+  isProgress,
+  canDownload,
   mp3Name,
   tags,
   isCopyButtonVisible,
@@ -46,50 +49,60 @@ const TagForm = ({
   }
 
   return (
-    <div className="tag-form">
-      <div className="tags-input">
-        <label className="tag-input-label">{origName}</label>
-        {_.map(tags, (t) => {
-          return (
-            <label className="tag-input-label" key={t.label}>
-              {t.label}
-              <input
-                type="text"
-                onChange={handleTagChange(t.key)}
-                value={t.value || ""}
-              />
-            </label>
-          );
-        })}
-      </div>
-      <div className="image-input">
-        <div className="image-area">
-          {imgSrc && <img src={imgSrc} alt="album art" />}
+    <details open={!isComplete}>
+      <summary>
+        {origName}
+      </summary>
+      <div className="tag-form">
+        <div className="tags-input">
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            {isCopyButtonVisible && (
+              <button className="copy-previous-button" onClick={onCopyPreviousTags}>
+                Copy Previous Metadata
+              </button>
+            )}
+          </div>
+          {_.map(tags, (t) => {
+            return (
+              <label className="tag-input-label" key={t.label}>
+                {t.label}
+                <input
+                  type="text"
+                  onChange={handleTagChange(t.key)}
+                  value={t.value || ""}
+                />
+              </label>
+            );
+          })}
         </div>
-        <label htmlFor="image-file-input">Select Image</label>
-        <input
-          id="image-file-input"
-          type="file"
-          accept=".gif,.png,.jpg"
-          onChange={handleImageFileSelected}
-        />
+        <div className="image-input">
+          <div className="image-area">
+            {imgSrc && <img src={imgSrc} alt="album art" />}
+          </div>
+          <label htmlFor="image-file-input">Select Image</label>
+          <input
+            id="image-file-input"
+            type="file"
+            accept=".gif,.png,.jpg"
+            onChange={handleImageFileSelected}
+          />
+        </div>
       </div>
       <div className="button-area">
-        {isCopyButtonVisible && (
-          <button className="copy-previous-button" onClick={onCopyPreviousTags}>
-            Copy Previous Metadata
+        <div style={{ display: "flex", alignItems: "baseline", width: "100%" }}>
+          <button
+            disabled={isProgress || !canDownload}
+            className="save-button"
+            onClick={handleSave}
+          >
+            Download {renameExtensionToMp3(mp3Name)}
+
           </button>
-        )}
-        <button
-          disabled={!isComplete}
-          className="save-button"
-          onClick={handleSave}
-        >
-          Download {mp3Name}
-          {isComplete ? null : " (still processing...)"}
-        </button>
+          {isProgress ? <div style={{ marginLeft: 8 }}> Encoding In Process...</div> : null}
+          {!canDownload && !isProgress ? <div style={{ marginLeft: 8 }}> Wait for 1 track to complete...</div> : null}
+        </div>
       </div>
-    </div>
+    </details>
   );
 };
 

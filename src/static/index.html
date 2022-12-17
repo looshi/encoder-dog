@@ -7,30 +7,50 @@
   <script src="./enable-threads.js"></script>
   <title>Free online mp3 encoder. Edit tags and save album art from image file!</title>
 </head>
+<style>
+  footer {
+
+    margin: 0 auto;
+    margin-top: 100px;
+    font-size: 14px;
+    border-top: 1px solid #948b7f;
+    background-color: #1f2427;
+  }
+
+  h2,
+  p {
+    padding: 0 24px;
+  }
+
+</style>
 
 <body>
-  <header>
-    <h1 style="display: flex; align-items: center;"><img style="height: 100"
-        src="https://looshi.github.io/images/profile-photo-dog-sm.png" /> Mp3 Converter</h1>
-
-
-  </header>
 
   <div id="root"></div>
 
   <script src="./bundle.js"></script>
   <footer>
     <h2>About</h2>
-
     <p>Free online mp3 encoder. Edit tags and save album art from image file!</p>
-    <p>Mp3 files are converted to constant bitrate of 320k.</p>
-    <p>This editor uses the ffmpeg wasm library <a href="https://ffmpegwasm.netlify.app/">ffmpegwasm.netlify.app</a>
+    <p>This editor uses the ffmpeg Web Assembly library
       which allows ffmpeg to run in the
-      browser. No need to download software to tag and organize your mp3 library, it can now be done directly on this
-      website. This program runs entirely on your computer within the browser, no data is sent to a server, no data is
+      browser. This program runs entirely on your computer within the browser, no data is sent to a server, no data is
       stored, no data is shared. Free to use!</p>
-    <p><a href="https://github.com/looshi/encoder-dog">View Source on Github</a></p>
+    <ul>
+      <li>ffmpeg: <a href="https://ffmpeg.org">https://ffmpeg.org</a></li>
+      <li>wasm: <a href="https://webassembly.org">https://webassembly.org</a></li>
+      <li>ffmpegwasm: <a href="https://ffmpegwasm.netlify.app/">https://ffmpegwasm.netlify.app</a></li>
+      <li>Source Code for this page: <a
+          href="https://github.com/looshi/encoder-dog">https://github.com/looshi/encoder-dog</a></li>
+    </ul>
+    <p>Mp3 files are converted to constant bitrate of 320k.</p>
+    <p>To view ffmpeg output: right click the browser screen and select "inspect" and the click on the "console" tab.
+    </p>
+    <p>Tested in Chrome on linux and windows. Other browsers may not work.</p>
     <p>Convert music files ( wav , aiff, flac, etc. ) to mp3 and add tags right here in the browser!</p>
+    <p></p><a href="https://looshi.github.io/"><img alt="drawing of a dog" style="height: 100"
+        src="./profile-photo-dog-sm-beige.png" /></a>
+    </p>
   </footer>
 </body>
 

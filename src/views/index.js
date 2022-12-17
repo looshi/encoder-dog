@@ -38,11 +38,11 @@ const initialTags = [
 
 function reducer(state, action) {
   switch (action.type) {
-    case "STARTED":
+    case "FILE_SELECTED":
       const item = {
         origName: action.payload.origName,
         fileName: action.payload.fileName,
-        progress: true,
+        progress: false,
         complete: false,
         error: false,
         url: null,
@@ -50,17 +50,29 @@ function reducer(state, action) {
         imageFileName: null,
       };
       return [...state, item];
-    case "COMPLETED":
+    case "TRANSCODE_STARTED":
       return _.map(state, (s) => {
         if (s.origName === action.payload.origName) {
           return {
             ...s,
-            origName: action.payload.origName,
-            fileName: action.payload.origName,
+            progress: true,
+            complete: false,
+            error: false,
+          };
+        }
+        return s;
+      });
+    case "TRANSCODE_COMPLETED":
+      return _.map(state, (s) => {
+        if (s.origName === action.payload.origName) {
+          return {
+            ...s,
+            // origName: action.payload.origName,
+            // fileName: action.payload.origName,
             progress: false,
             complete: true,
             error: false,
-            url: action.payload.url,
+            // url: action.payload.url,
           };
         }
         return s;
@@ -127,40 +139,24 @@ const IndexView = () => {
     setLogged([{ msg, timestamp: Date.now() }, ...logged]);
   };
 
-  async function encodeToMp3(file) {
+  async function handleAudioFileSelected(e) {
+    const file = e.target.files[0];
+    if (!file) alert("no file selected");
+
     const convert = {
       origName: file.name,
       url: null,
     };
-    dispatch({ type: "STARTED", payload: convert });
-
-
+    dispatch({ type: "FILE_SELECTED", payload: convert });
     ffmpeg.FS('writeFile', file.name, await fetchFile(file))
-
-    const outputFileName = `output_${renameExtensionToMp3(file.name)}`;
-    await ffmpeg.run('-i', file.name, outputFileName);
-
-    // remove the temp input file
-    // await ffmpeg.remove("input.wav");
-    const data = ffmpeg.FS('readFile', file.name);
-    const url = URL.createObjectURL(
-      new Blob([data.buffer], { type: "audio/mpeg" })
-    );
-
-    dispatch({ type: "COMPLETED", payload: { ...convert, url } });
-  }
-
-  function handleAudioFileSelected(e) {
-    const filename = e.target.files[0];
-    if (!filename) return;
-
-    encodeToMp3(filename);
   }
 
   const onDownload = (inputFileName) => async (tags, imageFileName) => {
     // inputFileName is stored in memory after transcode complete
     // should be able to read / write to the file
     const outputFileName = "output_" + renameExtensionToMp3(inputFileName);
+    dispatch({ type: "TRANSCODE_STARTED", payload: { origName: inputFileName } });
+
     const listFiles = await ffmpeg.FS("readdir", "/");
 
     console.log("Saving: ", inputFileName);
@@ -175,7 +171,7 @@ const IndexView = () => {
         return ['-metadata', `${t.key}=${t.value}`];
       }
     );
-    console.log('dave imageFileName', imageFileName);
+
     // Add image ( if exists )
     //const imageFileName = `${inputFileName}__image`;
     const hasImage = _.includes(listFiles, imageFileName);
@@ -200,9 +196,7 @@ const IndexView = () => {
       hasImage ? imageCommand : null,
       metadataCommand,
       bitrateCommand,
-      // "-c copy",  // I don't know why this used to be here, it doesn't work.
       outputFileName,
-
     ];
 
     // One arg per parameter is required for run, thus the spread "..."
@@ -215,7 +209,8 @@ const IndexView = () => {
     const url = URL.createObjectURL(
       new Blob([data.buffer], { type: "audio/mpeg" })
     );
-    dispatch({ type: "COMPLETED", payload: { outputFileName, url } });
+
+    dispatch({ type: "TRANSCODE_COMPLETED", payload: { origName: inputFileName } });
 
     // remove "output" from the filename
     const outFileName = outputFileName.substring("output_".length);
@@ -251,75 +246,69 @@ const IndexView = () => {
 
   return (
     <div id="index-view">
+      <div className="convert-list">
+
+        {!window.SharedArrayBuffer &&
+          <div className="no-converts-message"><p>Oops, this browser can not run ffmpeg.</p>  <p>Try Chrome Browser.</p></div>
+        }
 
 
-      <div className="panel">
-        <div className="convert-list">
-          {_.isEmpty(converted) && (
-            <div className="no-converts-message">
-              <div>Select a file to start encoding...</div>
-              <input
-                id="file-input"
-                type="file"
-                accept=".wav,.aiff"
-                onChange={handleAudioFileSelected}
-                disabled={isFileProcessing}
-              />
-            </div>
-          )}
+        {_.isEmpty(converted) && window.SharedArrayBuffer && (
+          <div className="no-converts-message">
+            <p>Select an audio file to get started...</p>
+            <input
+              id="file-input"
+              type="file"
+              accept=".wav,.aiff"
+              onChange={handleAudioFileSelected}
+              disabled={isFileProcessing}
 
-          <ul>
-            {_.map(converted, (c, index) => {
-              return (
-                <li key={c.origName}>
-                  {c.error && <div>Error</div>}
-                  {c.progress && (
-                    <div className="converting-message">Converting...</div>
+            />
+          </div>
+        )}
+
+        <ul>
+          {_.map(converted, (c, index) => {
+            return (
+              <li key={c.origName}>
+                {c.error && <div>Error</div>}
+                <TagForm
+                  isCopyButtonVisible={index > 0}
+                  tags={c.tags}
+                  origName={c.origName}
+                  mp3Name={c.origName}
+                  onTagChange={onTagChange(c.origName)}
+                  onDownload={onDownload(c.origName)}
+                  onImageReadyForEncoding={onImageReadyForEncoding(
+                    c.origName
                   )}
-                  <TagForm
-                    isCopyButtonVisible={index > 0}
-                    tags={c.tags}
-                    origName={c.origName}
-                    mp3Name={c.origName}
-                    onTagChange={onTagChange(c.origName)}
-                    onDownload={onDownload(c.origName)}
-                    onImageReadyForEncoding={onImageReadyForEncoding(
-                      c.origName
-                    )}
-                    onImageReadyForDisplay={onImageReadyForDisplay(c.origName)}
-                    onCopyPreviousTags={onCopyPreviousTags(c.origName)}
-                    imgSrc={c.img}
-                    imageFileName={c.imageFileName}
-                    isComplete={c.complete}
-                  />
-                </li>
-              );
-            })}
-          </ul>
-          {!_.isEmpty(converted) && !isFileProcessing && (
-            <div className="no-converts-message">
-              <div>Select another file...</div>
-              <input
-                id="file-input"
-                type="file"
-                accept=".wav,.aiff"
-                onChange={handleAudioFileSelected}
-              />
-            </div>
-          )}
-        </div>
+                  onImageReadyForDisplay={onImageReadyForDisplay(c.origName)}
+                  onCopyPreviousTags={onCopyPreviousTags(c.origName)}
+                  imgSrc={c.img}
+                  imageFileName={c.imageFileName}
+                  isComplete={c.complete}
+                  isProgress={c.progress}
+                  canDownload={!_.some(converted, 'progress')}
+                />
+              </li>
+            );
+          })}
+        </ul>
+        {!_.isEmpty(converted) && !isFileProcessing && (
+          <div className="no-converts-message">
+            <div>Select another file...</div>
+            <input
+              id="file-input"
+              type="file"
+              accept=".wav,.aiff"
+              onChange={handleAudioFileSelected}
+            />
+          </div>
+        )}
       </div>
 
-      <div className="panel">
-        <div className="log-list">
-          <ul>
-            {_.map(logged, (l) => (
-              <li key={l.timestamp}>{l.msg}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
+
+    </div >
   );
 };
 

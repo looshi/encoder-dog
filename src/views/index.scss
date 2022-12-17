@@ -2,7 +2,7 @@
 
 html,
 body {
-  padding: 0;
+
   margin: 0;
   font-family: "Poppins", cursive;
   background-color: colors.$backgroundDark;
@@ -28,13 +28,36 @@ a:visited {
 
 
 #index-view {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
 
   ul {
     list-style: none;
     padding: 0;
   }
 
-  .panel {}
+  header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .log-list {
+    background: orange;
+    color: green;
+    background-color: colors.$backgroundDark;
+    font-size: 11px;
+    height: 100px;
+    width: 400px;
+    overflow-y: auto;
+    border: 1px solid rgb(52, 51, 51);
+    padding: 8px;
+    margin: 8px;
+
+    ul {
+      padding: 8px;
+    }
+  }
 
   .convert-list {
     padding: 24px;
@@ -84,7 +107,8 @@ a:visited {
     text-align: center;
     margin: 32px auto;
     border: 1px dashed colors.$colorLight;
-    padding: 32px;
+    background-color: colors.$backgroundMedium;
+    padding: 32px 32px 48px;
     width: 50%;
 
     input {
@@ -92,16 +116,7 @@ a:visited {
     }
   }
 
-  .log-list {
-    background: orange;
-    color: green;
-    background-color: colors.$backgroundDark;
-    font-size: 11px;
 
-    ul {
-      padding: 8px;
-    }
-  }
 }
 
 .page {
