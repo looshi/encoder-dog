@@ -1,31 +1,47 @@
-@use "../css/colors";
+@use "./colors";
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "Poppins", cursive;
+  background-color: colors.$backgroundDark;
+  color: colors.$colorMedium;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: colors.$colorMedium;
+}
+
+a,
+a:visited {
+  color: colors.$colorLight;
+}
+
 
 #index-view {
-  display: grid;
-  grid-template-rows: 100px auto;
-  grid-template-columns: 1fr 35%;
-  height: 100vh;
-
-  header {
-    grid-column: span 2;
-    background-color: colors.$backgroundMedium;
-    padding: 20px;
-  }
 
   ul {
     list-style: none;
     padding: 0;
   }
 
-  .panel {
-    height: calc(100vh - 104px);
-  }
+  .panel {}
 
   .convert-list {
-    overflow-y: scroll;
-    height: 100%;
+    padding: 24px;
     background-color: colors.$backgroundDark;
     text-align: center;
+    color: white;
+
     li {
       position: relative;
       margin: 8px;
@@ -35,6 +51,7 @@
       background-color: colors.$backgroundMedium;
       color: colors.$colorDark;
     }
+
     .converting-message {
       position: absolute;
       top: 0;
@@ -49,6 +66,7 @@
       color: white;
       font-size: 26px;
     }
+
     a {
       padding: 8px 20px;
       background-color: colors.$backgroundMedium;
@@ -56,28 +74,30 @@
       margin-top: 4px;
       display: inline-block;
     }
+
     a:hover {
       background-color: colors.$backgroundLight;
     }
   }
+
   .no-converts-message {
     text-align: center;
     margin: 32px auto;
     border: 1px dashed colors.$colorLight;
     padding: 32px;
     width: 50%;
+
     input {
       margin-top: 16px;
     }
   }
 
   .log-list {
-    overflow-y: scroll;
     background: orange;
     color: green;
-    height: 100%;
     background-color: colors.$backgroundDark;
     font-size: 11px;
+
     ul {
       padding: 8px;
     }

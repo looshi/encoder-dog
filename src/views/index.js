@@ -188,19 +188,26 @@ const IndexView = () => {
       '1',
     ];
 
+    const bitrateCommand = [
+      // constant bitrate of 320k
+      '-b:a',
+      '320k',
+    ]
+
     const args = [
       `-i`,
       inputFileName,
       hasImage ? imageCommand : null,
       metadataCommand,
+      bitrateCommand,
       // "-c copy",  // I don't know why this used to be here, it doesn't work.
       outputFileName,
+
     ];
 
     // One arg per parameter is required for run, thus the spread "..."
     // e.g. ffmpeg.run('-i', 'input', 'output')
     const runArgs = _.compact(_.flattenDeep(args));
-    console.log('dave, runArgs', runArgs);
     await ffmpeg.run(...runArgs);
 
     // write the file to the object url for the download link
@@ -210,7 +217,9 @@ const IndexView = () => {
     );
     dispatch({ type: "COMPLETED", payload: { outputFileName, url } });
 
-    startDownload(url, outputFileName);
+    // remove "output" from the filename
+    const outFileName = outputFileName.substring("output_".length);
+    startDownload(url, outFileName);
   };
 
   const onImageReadyForEncoding = (origName) => async (file) => {
@@ -242,10 +251,7 @@ const IndexView = () => {
 
   return (
     <div id="index-view">
-      <header>
-        <h1>Encode files to mp3 and add tags</h1>
-        <p><a href="https://github.com/looshi/encoder-dogView">Source on Github</a></p>
-      </header>
+
 
       <div className="panel">
         <div className="convert-list">

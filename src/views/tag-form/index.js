@@ -85,7 +85,7 @@ const TagForm = ({
           className="save-button"
           onClick={handleSave}
         >
-          Save {mp3Name}
+          Download {mp3Name}
           {isComplete ? null : " (still processing...)"}
         </button>
       </div>
