@@ -6,11 +6,19 @@ import { renameExtensionToMp3, startDownload } from "../utils";
 import TagForm from "./tag-form/index.js";
 
 const path = new URL('./ffmpeg-core.js', document.location).href;
-console.log('loading ffmpeg from ', path);
+
 const ffmpeg = createFFmpeg({
   corePath: path,
-
+  log: true,
 });
+
+const initialize = async () => {
+  if (!ffmpeg.isLoaded()) {
+    await ffmpeg.load();
+  }
+}
+initialize();
+
 const consoleLog = window.console.log;
 
 const initialTags = [
@@ -39,6 +47,7 @@ function reducer(state, action) {
         error: false,
         url: null,
         tags: initialTags,
+        imageFileName: null,
       };
       return [...state, item];
     case "COMPLETED":
@@ -62,6 +71,7 @@ function reducer(state, action) {
           return {
             ...s,
             img: action.payload.dataUrl,
+            imageFileName: `${action.payload.origName}__image`,
           };
         }
         return s;
@@ -79,10 +89,12 @@ function reducer(state, action) {
     case "COPY_PREVIOUS_TAGS":
       return _.map(state, (s, index) => {
         if (s.origName === action.payload.origName) {
+          const previous = state[index - 1];
           return {
             ...s,
-            tags: [...state[index - 1].tags],
-            img: state[index - 1].img,
+            tags: [...previous.tags],
+            img: previous.img,
+            imageFileName: previous.imageFileName,
           };
         }
 
@@ -102,9 +114,7 @@ function reducer(state, action) {
         }
         return s;
       });
-      return state;
   }
-
   return state;
 }
 
@@ -124,28 +134,14 @@ const IndexView = () => {
     };
     dispatch({ type: "STARTED", payload: convert });
 
-    // const fileName = renameExtensionToMp3(file.name);
-    await ffmpeg.load();
-
-    // await ffmpeg.write("input.wav", arraybuffer);
-    // await ffmpeg.transcode("input.wav", fileName);
-
-    if (!ffmpeg.isLoaded()) {
-      await ffmpeg.load();
-    }
-
 
     ffmpeg.FS('writeFile', file.name, await fetchFile(file))
 
-    // ffmpeg.FS('writeFile', 'input.wav', arraybuffer);
     const outputFileName = `output_${renameExtensionToMp3(file.name)}`;
     await ffmpeg.run('-i', file.name, outputFileName);
-    //await fs.promises.writeFile('./test.mp4', ffmpeg.FS('readFile', 'test.mp4'));
-
 
     // remove the temp input file
     // await ffmpeg.remove("input.wav");
-
     const data = ffmpeg.FS('readFile', file.name);
     const url = URL.createObjectURL(
       new Blob([data.buffer], { type: "audio/mpeg" })
@@ -161,38 +157,53 @@ const IndexView = () => {
     encodeToMp3(filename);
   }
 
-  const onSaveTags = (inputFileName) => async (tags) => {
-    // filename that is stored in memory after transcode complete
-    // should be able to read / write to the file.
-
-    // -metadata title="Track Title" -metadata artist="Eduard Artemyev" ... etc.
-    const options = _.map(
-      _.filter(tags, (t) => t.value),
-      (t) => {
-        return `-metadata "${t.key}=${t.value}"`;
-      }
-    );
-
+  const onDownload = (inputFileName) => async (tags, imageFileName) => {
+    // inputFileName is stored in memory after transcode complete
+    // should be able to read / write to the file
     const outputFileName = "output_" + renameExtensionToMp3(inputFileName);
     const listFiles = await ffmpeg.FS("readdir", "/");
 
-    console.log('--listFiles', listFiles);
+    console.log("Saving: ", inputFileName);
+    console.log("Tags: ", tags);
+    console.log('All Files: ', listFiles);
 
+    // Add Metadata
+    // -metadata title="Track Title" -metadata artist="Eduard Artemyev" ... etc.
+    const metadataCommand = _.map(
+      _.filter(tags, (t) => t.value),
+      (t) => {
+        return ['-metadata', `${t.key}=${t.value}`];
+      }
+    );
+    console.log('dave imageFileName', imageFileName);
     // Add image ( if exists )
-    const imageFileName = `${inputFileName}__image`;
+    //const imageFileName = `${inputFileName}__image`;
     const hasImage = _.includes(listFiles, imageFileName);
+    const imageCommand = [
+      `-i`,
+      imageFileName,
+      '-map',
+      '0',
+      '-map',
+      '1',
+    ];
 
     const args = [
-      `-i ${inputFileName}`,
-      hasImage ? `-i ${imageFileName} -map 0:0 -map 1:0` : null,
-      ...options,
-      "-c copy",
+      `-i`,
+      inputFileName,
+      hasImage ? imageCommand : null,
+      metadataCommand,
+      // "-c copy",  // I don't know why this used to be here, it doesn't work.
       outputFileName,
     ];
-    await ffmpeg.run(_.join(_.compact(args), " "));
+
+    // One arg per parameter is required for run, thus the spread "..."
+    // e.g. ffmpeg.run('-i', 'input', 'output')
+    const runArgs = _.compact(_.flattenDeep(args));
+    console.log('dave, runArgs', runArgs);
+    await ffmpeg.run(...runArgs);
 
     // write the file to the object url for the download link
-
     const data = ffmpeg.FS('readFile', "./" + outputFileName);
     const url = URL.createObjectURL(
       new Blob([data.buffer], { type: "audio/mpeg" })
@@ -202,20 +213,14 @@ const IndexView = () => {
     startDownload(url, outputFileName);
   };
 
-  const onImageReadyForEncoding = (origName) => async (arraybuffer, file) => {
+  const onImageReadyForEncoding = (origName) => async (file) => {
     // Write image file to "disk" with the corresponding audio filename
     // prepended.  e.g. "mysong.wav__image".
     // Later when the user clicks save the image can be looked up by its
     // corresponding audio file's name.
 
     const imageFileName = `${origName}__image`;
-    // Remove the last image file for this audio ( if exists )
-    const listFiles = await ffmpeg.FS("readdir", "/");
-    if (_.includes(listFiles, imageFileName)) {
-      await ffmpeg.remove(imageFileName);
-    }
-
-    await ffmpeg.write(imageFileName, arraybuffer);
+    await ffmpeg.FS('writeFile', imageFileName, await fetchFile(file));
   };
 
   const onTagChange = (origName) => (tags) => {
@@ -271,13 +276,14 @@ const IndexView = () => {
                     origName={c.origName}
                     mp3Name={c.origName}
                     onTagChange={onTagChange(c.origName)}
-                    onSaveTags={onSaveTags(c.origName)}
+                    onDownload={onDownload(c.origName)}
                     onImageReadyForEncoding={onImageReadyForEncoding(
                       c.origName
                     )}
                     onImageReadyForDisplay={onImageReadyForDisplay(c.origName)}
                     onCopyPreviousTags={onCopyPreviousTags(c.origName)}
                     imgSrc={c.img}
+                    imageFileName={c.imageFileName}
                     isComplete={c.complete}
                   />
                 </li>

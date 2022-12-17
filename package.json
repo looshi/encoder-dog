@@ -5,12 +5,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack serve  --config ./webpack.config.js --mode development",
-    "build": "rm -rf dist && parcel build src/index.html && npm run cp-to-github-page",
+    "build": "rm -rf dist && webpack && npm run cp-to-github-page",
     "cp-to-github-page": "rm -rf ../looshi.github.io/encoder-dog && cp dist -r ../looshi.github.io/encoder-dog"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/looshi/encoder-dog.git"
+    "url": "https://github.com/looshi/encoder-dog.git"
   },
   "author": "",
   "license": "ISC",
