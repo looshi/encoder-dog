@@ -69,7 +69,7 @@ const TagForm = ({
       </summary>
       <div className="tag-form">
         <div className="tags-input">
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div style={{ textAlign: "right" }}>
             {isCopyButtonVisible && (
               <button className="copy-previous-button" onClick={onCopyPreviousTags}>
                 Copy Previous Metadata
@@ -79,7 +79,7 @@ const TagForm = ({
           {_.map(tags, (t) => {
             return (
               <label className="tag-input-label" key={t.label}>
-                {t.label}
+                <div class="label-text">{t.label}</div>
                 <input
                   type="text"
                   onChange={handleTagChange(t.key)}

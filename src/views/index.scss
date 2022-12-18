@@ -31,6 +31,50 @@ div {
 }
 
 
+select,
+input,
+textarea,
+button {
+
+  line-height: 1.5;
+  padding: 6px;
+  border: 1px solid colors.$backgroundDark;
+  color: colors.$colorMedium;
+  background: colors.$backgroundLight;
+  transition: background-color 0.3s cubic-bezier(0.57, 0.21, 0.69, 1.25),
+    transform 0.3s ease-out;
+}
+
+
+select:focus,
+input:focus,
+textarea:focus,
+input[type="checkbox"]:focus+label {
+  background: colors.$backgroundDark;
+}
+
+
+*:disabled {
+  cursor: default;
+  color: colors.$colorDark;
+}
+
+button {
+  border-color: colors.$backgroundDark;
+  color: colors.$colorLight;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: colors.$backgroundLight;
+  padding: 6px 24px;
+}
+
+button:enabled:hover,
+button:focus {
+  border-color: colors.$colorDark;
+}
+
+
+
 #index-view {
   padding: 24px;
   max-width: 1200px;
@@ -70,13 +114,14 @@ div {
     color: white;
 
     li {
-      position: relative;
+
       margin: 24px 8px;
       padding: 32px;
-      border: 1px solid colors.$colorDark;
+      border: 1px solid #1e1b16;
       border-radius: 3px;
       background-color: colors.$backgroundMedium;
       color: colors.$colorDark;
+
     }
 
     .converting-message {

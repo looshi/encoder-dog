@@ -217,7 +217,10 @@ const IndexView = () => {
       new Blob([data.buffer], { type: "audio/mpeg" })
     );
 
-    dispatch({ type: "TRANSCODE_COMPLETED", payload: { origName: inputFileName } });
+    setTimeout(() => {
+      dispatch({ type: "TRANSCODE_COMPLETED", payload: { origName: inputFileName } });
+    }, 2000)
+
 
     // remove "output" from the filename
     const outFileName = outputFileName.substring("output_".length);

@@ -3,6 +3,7 @@
 details {
   text-align: left;
 
+
   summary {
     cursor: pointer;
 
@@ -12,19 +13,23 @@ details {
   }
 }
 
-.tag-form {
-  margin-top: 18px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-}
+
 
 .tags-input {
-  width: 49%;
+  width: 100%;
+
+  @media (min-width: 768px) {
+    width: 49%;
+  }
 }
 
 .image-input {
-  width: 49%;
+  width: 100%;
+
+  @media (min-width: 768px) {
+    width: 49%;
+  }
+
 
   .image-dropzone {
     margin: 20px auto 0;
@@ -35,6 +40,10 @@ details {
     width: 200px;
     height: 200px;
     cursor: pointer;
+
+    @media (min-width: 768px) {
+      margin: 112px auto 0;
+    }
 
     p {
       margin-top: 60px;
@@ -56,13 +65,6 @@ details {
     object-fit: scale-down;
   }
 
-  label,
-  input {
-    width: 200px;
-    display: block;
-    padding: 0;
-    margin: 12px auto;
-  }
 }
 
 .button-area {
@@ -72,14 +74,32 @@ details {
   }
 }
 
-.tag-input-label {
+.tag-form {
+  margin-top: 18px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+
+}
+
+.tag-form button {
+  cursor: pointer;
+}
+
+.tag-form label {
+  font-size: 14px;
+  margin-top: 4px;
+  display: flex;
   align-items: center;
-  border-bottom: 1px solid #2f373c;
+  justify-content: space-between;
+  color: colors.$colorLight;
+
+  .label-text {
+    width: 30%;
+  }
 
   input {
-    width: 60%;
-    border-radius: 2px;
+    width: 200px;
+    width: 70%;
   }
 }
