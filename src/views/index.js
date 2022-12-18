@@ -264,7 +264,7 @@ const IndexView = () => {
 
 
         {_.isEmpty(converted) && window.SharedArrayBuffer && (
-          <div className="no-converts-message"  {...getRootProps({ style: dropZoneStyle })}>
+          <div className="no-converts-message intro"  {...getRootProps({ style: dropZoneStyle })}>
             <p>Drag and drop files here, or click to select</p>
             <input
               id="file-input"

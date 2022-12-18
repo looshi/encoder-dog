@@ -2,11 +2,11 @@
 
 html,
 body {
-  margin: 0;
-  font-family: "Poppins", cursive;
-  background-color: colors.$backgroundDark;
+
   color: colors.$colorMedium;
+  font-family: "Poppins", cursive;
   height: 100%;
+  margin: 0;
 }
 
 h1,
@@ -15,10 +15,10 @@ h3,
 h4,
 h5,
 h6 {
+  color: colors.$colorMedium;
   font-family: "Noto Sans", sans-serif;
   font-weight: 600;
   text-transform: uppercase;
-  color: colors.$colorMedium;
 }
 
 a,
@@ -30,54 +30,47 @@ div {
   transition: all 0.3s ease;
 }
 
-
 select,
 input,
 textarea,
 button {
-
-  line-height: 1.5;
-  padding: 6px;
+  background: colors.$backgroundLight;
   border: 1px solid colors.$backgroundDark;
   color: colors.$colorMedium;
-  background: colors.$backgroundLight;
-  transition: background-color 0.3s cubic-bezier(0.57, 0.21, 0.69, 1.25),
+  line-height: 1.5;
+  padding: 6px;
+  transition: background-color 0.3s cubic-bezier(0.6, 0.2, 0.7, 1.2),
     transform 0.3s ease-out;
 }
 
-
 select:focus,
 input:focus,
-textarea:focus,
-input[type="checkbox"]:focus+label {
+textarea:focus {
   background: colors.$backgroundDark;
 }
 
-
 *:disabled {
-  cursor: default;
   color: colors.$colorDark;
+  cursor: default;
 }
 
 button {
+  background-color: colors.$backgroundLight;
   border-color: colors.$backgroundDark;
   color: colors.$colorLight;
-  font-size: 14px;
   cursor: pointer;
-  background-color: colors.$backgroundLight;
+  font-size: 14px;
   padding: 6px 24px;
+
+  &:enabled:hover,
+  &:focus {
+    border-color: colors.$colorDark;
+  }
 }
-
-button:enabled:hover,
-button:focus {
-  border-color: colors.$colorDark;
-}
-
-
 
 #index-view {
-  padding: 24px;
   max-width: 1200px;
+  text-align: center;
   margin: 0 auto;
 
   ul {
@@ -91,61 +84,20 @@ button:focus {
   }
 
   .log-list {
-    background: orange;
-    color: green;
-    background-color: colors.$backgroundDark;
-    font-size: 11px;
-    height: 100px;
-    width: 400px;
-    overflow-y: auto;
-    border: 1px solid rgb(52, 51, 51);
-    padding: 8px;
-    margin: 8px;
-
     ul {
       padding: 8px;
     }
   }
 
   .convert-list {
-    padding: 24px;
-    background-color: colors.$backgroundDark;
-    text-align: center;
-    color: white;
-
     li {
-
-      margin: 24px 8px;
-      padding: 32px;
+      background-color: colors.$backgroundMedium;
       border: 1px solid #1e1b16;
-      border-radius: 3px;
-      background-color: colors.$backgroundMedium;
       color: colors.$colorDark;
-
+      margin: 24px 60px;
+      padding: 32px;
     }
 
-    .converting-message {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      opacity: 0.8;
-      background-color: #c5b0c2;
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      color: white;
-      font-size: 26px;
-    }
-
-    a {
-      padding: 8px 20px;
-      background-color: colors.$backgroundMedium;
-      color: colors.$colorLight;
-      margin-top: 4px;
-      display: inline-block;
-    }
 
     a:hover {
       background-color: colors.$backgroundLight;
@@ -153,31 +105,24 @@ button:focus {
   }
 
   .no-converts-message {
-    text-align: center;
-    margin: 64px auto 16px;
-    border: 1px dashed colors.$colorDark;
+    &.intro {
+      margin: 200px 120px;
+    }
+
     background-color: colors.$backgroundMedium;
-    padding: 48px;
-    width: 50%;
-    cursor: pointer;
-    // box-shadow: 2px 1px 200px colors.$backgroundMedium;
+    border: 1px dashed colors.$colorLight;
+    margin: 60px 120px;
+    padding: 60px;
+    text-align: center;
 
     &:hover {
-      border: 1px dashed #fff;
       background-color: colors.$backgroundLight;
+      border: 1px dashed #fff;
+      cursor: pointer;
     }
 
     input {
       margin-top: 16px;
     }
   }
-
-
-}
-
-.page {
-  display: grid;
-  grid-template-rows: 100px auto;
-  grid-template-columns: 300px 1fr;
-  height: 100vh;
 }

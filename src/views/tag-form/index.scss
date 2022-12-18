@@ -3,7 +3,6 @@
 details {
   text-align: left;
 
-
   summary {
     cursor: pointer;
 
@@ -12,8 +11,6 @@ details {
     }
   }
 }
-
-
 
 .tags-input {
   width: 100%;
@@ -30,13 +27,12 @@ details {
     width: 49%;
   }
 
-
   .image-dropzone {
-    margin: 20px auto 0;
-    text-align: center;
-    border: 1px dashed colors.$colorMedium;
     background-color: colors.$backgroundMedium;
-
+    border: 1px dashed colors.$colorMedium;
+    margin: 20px auto 0;
+    padding: 12px;
+    text-align: center;
     width: 200px;
     height: 200px;
     cursor: pointer;
@@ -50,8 +46,8 @@ details {
     }
 
     &:hover {
-      border: 1px dashed #fff;
       background-color: colors.$backgroundLight;
+      border: 1px dashed #fff;
     }
 
     input {
@@ -60,11 +56,10 @@ details {
   }
 
   img {
-    width: 100%;
     height: 100%;
     object-fit: scale-down;
+    width: 100%;
   }
-
 }
 
 .button-area {
@@ -75,11 +70,10 @@ details {
 }
 
 .tag-form {
-  margin-top: 18px;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-
+  margin-top: 18px;
 }
 
 .tag-form button {
@@ -87,19 +81,18 @@ details {
 }
 
 .tag-form label {
-  font-size: 14px;
-  margin-top: 4px;
-  display: flex;
   align-items: center;
-  justify-content: space-between;
   color: colors.$colorLight;
+  display: flex;
+  font-size: 14px;
+  justify-content: space-between;
+  margin-top: 4px;
 
   .label-text {
     width: 30%;
   }
 
   input {
-    width: 200px;
     width: 70%;
   }
 }
