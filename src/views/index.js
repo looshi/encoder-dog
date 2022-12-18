@@ -1,12 +1,12 @@
-import React, { useState, useReducer } from "react";
+import React, { useReducer } from "react";
 import "./index.scss";
 import _ from "lodash";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
-import { useDropzone } from 'react-dropzone';
+import { useDropzone } from "react-dropzone";
 import { renameExtensionToMp3, startDownload } from "../utils";
 import TagForm from "./tag-form/index.js";
 
-const path = new URL('./ffmpeg-core.js', document.location).href;
+const path = new URL("./ffmpeg-core.js", document.location).href;
 
 const ffmpeg = createFFmpeg({
   corePath: path,
@@ -17,10 +17,8 @@ const initialize = async () => {
   if (!ffmpeg.isLoaded()) {
     await ffmpeg.load();
   }
-}
+};
 initialize();
-
-const consoleLog = window.console.log;
 
 const initialTags = [
   { label: "Artist", key: "artist" },
@@ -133,16 +131,25 @@ function reducer(state, action) {
 
 const IndexView = () => {
   const [converted, dispatch] = useReducer(reducer, []);
-  const { acceptedFiles, getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } = useDropzone({
+  const {
+    acceptedFiles,
+    getRootProps,
+    getInputProps,
+    isFocused,
+    isDragAccept,
+    isDragReject,
+  } = useDropzone({
     onDrop: handleAudioFileSelected,
     accept: {
-      'audio/*': [],
-    }
+      "audio/*": [],
+    },
   });
 
   const dropZoneStyle = {
     ...(isFocused ? { borderColor: "#fff" } : {}),
-    ...(isDragAccept ? { borderColor: "#fff", backgroundColor: '#24292c' } : {}),
+    ...(isDragAccept
+      ? { borderColor: "#fff", backgroundColor: "#24292c" }
+      : {}),
     ...(isDragReject ? { borderColor: "red" } : {}),
   };
 
@@ -155,47 +162,43 @@ const IndexView = () => {
       url: null,
     };
     dispatch({ type: "FILE_SELECTED", payload: convert });
-    ffmpeg.FS('writeFile', file.name, await fetchFile(file))
+    ffmpeg.FS("writeFile", file.name, await fetchFile(file));
   }
 
   const onDownload = (inputFileName) => async (tags, imageFileName) => {
     // inputFileName is stored in memory after transcode complete
     // should be able to read / write to the file
     const outputFileName = "output_" + renameExtensionToMp3(inputFileName);
-    dispatch({ type: "TRANSCODE_STARTED", payload: { origName: inputFileName } });
+    dispatch({
+      type: "TRANSCODE_STARTED",
+      payload: { origName: inputFileName },
+    });
 
     const listFiles = await ffmpeg.FS("readdir", "/");
 
     console.log("Saving: ", inputFileName);
     console.log("Tags: ", tags);
-    console.log('All Files: ', listFiles);
+    console.log("All Files: ", listFiles);
 
     // Add Metadata
     // -metadata title="Track Title" -metadata artist="Eduard Artemyev" ... etc.
     const metadataCommand = _.map(
       _.filter(tags, (t) => t.value),
       (t) => {
-        return ['-metadata', `${t.key}=${t.value}`];
+        return ["-metadata", `${t.key}=${t.value}`];
       }
     );
 
     // Add image ( if exists )
     //const imageFileName = `${inputFileName}__image`;
     const hasImage = _.includes(listFiles, imageFileName);
-    const imageCommand = [
-      `-i`,
-      imageFileName,
-      '-map',
-      '0',
-      '-map',
-      '1',
-    ];
+    const imageCommand = [`-i`, imageFileName, "-map", "0", "-map", "1"];
 
     const bitrateCommand = [
       // constant bitrate of 320k
-      '-b:a',
-      '320k',
-    ]
+      "-b:a",
+      "320k",
+    ];
 
     const args = [
       `-i`,
@@ -212,15 +215,17 @@ const IndexView = () => {
     await ffmpeg.run(...runArgs);
 
     // write the file to the object url for the download link
-    const data = ffmpeg.FS('readFile', "./" + outputFileName);
+    const data = ffmpeg.FS("readFile", "./" + outputFileName);
     const url = URL.createObjectURL(
       new Blob([data.buffer], { type: "audio/mpeg" })
     );
 
     setTimeout(() => {
-      dispatch({ type: "TRANSCODE_COMPLETED", payload: { origName: inputFileName } });
-    }, 2000)
-
+      dispatch({
+        type: "TRANSCODE_COMPLETED",
+        payload: { origName: inputFileName },
+      });
+    }, 2000);
 
     // remove "output" from the filename
     const outFileName = outputFileName.substring("output_".length);
@@ -234,7 +239,7 @@ const IndexView = () => {
     // corresponding audio file's name.
 
     const imageFileName = `${origName}__image`;
-    await ffmpeg.FS('writeFile', imageFileName, await fetchFile(file));
+    await ffmpeg.FS("writeFile", imageFileName, await fetchFile(file));
   };
 
   const onTagChange = (origName) => (tags) => {
@@ -257,14 +262,18 @@ const IndexView = () => {
   return (
     <div id="index-view">
       <div className="convert-list">
-
-        {!window.SharedArrayBuffer &&
-          <div className="no-converts-message"><p>Oops, this browser can not run ffmpeg.</p>  <p>Try Chrome Browser.</p></div>
-        }
-
+        {!window.SharedArrayBuffer && (
+          <div className="no-converts-message">
+            <p>Oops, this browser can not run ffmpeg.</p>{" "}
+            <p>Try Chrome Browser.</p>
+          </div>
+        )}
 
         {_.isEmpty(converted) && window.SharedArrayBuffer && (
-          <div className="no-converts-message intro"  {...getRootProps({ style: dropZoneStyle })}>
+          <div
+            className="no-converts-message intro"
+            {...getRootProps({ style: dropZoneStyle })}
+          >
             <p>Drag and drop files here, or click to select</p>
             <input
               id="file-input"
@@ -289,25 +298,25 @@ const IndexView = () => {
                   mp3Name={c.origName}
                   onTagChange={onTagChange(c.origName)}
                   onDownload={onDownload(c.origName)}
-                  onImageReadyForEncoding={onImageReadyForEncoding(
-                    c.origName
-                  )}
+                  onImageReadyForEncoding={onImageReadyForEncoding(c.origName)}
                   onImageReadyForDisplay={onImageReadyForDisplay(c.origName)}
                   onCopyPreviousTags={onCopyPreviousTags(c.origName)}
                   imgSrc={c.img}
                   imageFileName={c.imageFileName}
                   isComplete={c.complete}
                   isProgress={c.progress}
-                  canDownload={!_.some(converted, 'progress')}
+                  canDownload={!_.some(converted, "progress")}
                 />
               </li>
             );
           })}
         </ul>
 
-
         {!_.isEmpty(converted) && (
-          <div className="no-converts-message"  {...getRootProps({ style: dropZoneStyle })}>
+          <div
+            className="no-converts-message"
+            {...getRootProps({ style: dropZoneStyle })}
+          >
             <p>Add another audio file</p>
             <input
               id="file-input"
@@ -319,9 +328,7 @@ const IndexView = () => {
           </div>
         )}
       </div>
-
-
-    </div >
+    </div>
   );
 };
 

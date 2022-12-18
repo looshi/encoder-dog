@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useDropzone } from 'react-dropzone'
+import { useDropzone } from "react-dropzone";
 import PropTypes from "prop-types";
 import _ from "lodash";
 import "./index.scss";
@@ -21,17 +21,17 @@ const TagForm = ({
   tags,
   isCopyButtonVisible,
 }) => {
-  const { acceptedFiles, getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } = useDropzone({
+  const { getRootProps, isFocused, isDragAccept, isDragReject } = useDropzone({
     onDrop: handleImageFileSelected,
-    accept: { 'image/*': [] },
+    accept: { "image/*": [] },
   });
-  ;
   const dropZoneStyle = {
     ...(isFocused ? { borderColor: "#fff" } : {}),
-    ...(isDragAccept ? { borderColor: "#fff", backgroundColor: '#24292c' } : {}),
+    ...(isDragAccept
+      ? { borderColor: "#fff", backgroundColor: "#24292c" }
+      : {}),
     ...(isDragReject ? { borderColor: "red" } : {}),
   };
-
 
   const handleTagChange = (key) => (event) => {
     const updatedTags = _.map(tags, (t) => {
@@ -46,7 +46,6 @@ const TagForm = ({
   const handleSave = () => {
     onDownload(tags, imageFileName);
   };
-
 
   async function handleImageFileSelected(files) {
     const file = files[0];
@@ -64,14 +63,15 @@ const TagForm = ({
 
   return (
     <details open={!isComplete}>
-      <summary>
-        {origName}
-      </summary>
+      <summary>{origName}</summary>
       <div className="tag-form">
         <div className="tags-input">
           <div style={{ textAlign: "right" }}>
             {isCopyButtonVisible && (
-              <button className="copy-previous-button" onClick={onCopyPreviousTags}>
+              <button
+                className="copy-previous-button"
+                onClick={onCopyPreviousTags}
+              >
                 Copy Previous Metadata
               </button>
             )}
@@ -90,11 +90,16 @@ const TagForm = ({
           })}
         </div>
         <div className="image-input">
-
-          <div className="image-dropzone" {...getRootProps({ style: dropZoneStyle })}>
-            {imgSrc ? <img src={imgSrc} alt="album art" /> : <p>Drag and drop image file, or click to select</p>}
+          <div
+            className="image-dropzone"
+            {...getRootProps({ style: dropZoneStyle })}
+          >
+            {imgSrc ? (
+              <img src={imgSrc} alt="album art" />
+            ) : (
+              <p>Drag and drop image file, or click to select</p>
+            )}
           </div>
-
         </div>
       </div>
       <div className="button-area">
@@ -105,10 +110,16 @@ const TagForm = ({
             onClick={handleSave}
           >
             Download {renameExtensionToMp3(mp3Name)}
-
           </button>
-          {isProgress ? <div style={{ marginLeft: 8 }}> Encoding In Process...</div> : null}
-          {!canDownload && !isProgress ? <div style={{ marginLeft: 8 }}> Wait for 1 track to complete...</div> : null}
+          {isProgress ? (
+            <div style={{ marginLeft: 8 }}> Encoding In Process...</div>
+          ) : null}
+          {!canDownload && !isProgress ? (
+            <div style={{ marginLeft: 8 }}>
+              {" "}
+              Wait for 1 track to complete...
+            </div>
+          ) : null}
         </div>
       </div>
     </details>
