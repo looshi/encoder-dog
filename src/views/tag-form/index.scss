@@ -5,6 +5,10 @@ details {
 
   summary {
     cursor: pointer;
+
+    &:hover {
+      color: colors.$colorLight;
+    }
   }
 }
 
@@ -22,11 +26,28 @@ details {
 .image-input {
   width: 49%;
 
-  .image-area {
-    height: 200px;
-    width: 200px;
-    border: 1px dashed white;
+  .image-dropzone {
     margin: 20px auto 0;
+    text-align: center;
+    border: 1px dashed colors.$colorMedium;
+    background-color: colors.$backgroundMedium;
+
+    width: 200px;
+    height: 200px;
+    cursor: pointer;
+
+    p {
+      margin-top: 60px;
+    }
+
+    &:hover {
+      border: 1px dashed #fff;
+      background-color: colors.$backgroundLight;
+    }
+
+    input {
+      margin-top: 16px;
+    }
   }
 
   img {

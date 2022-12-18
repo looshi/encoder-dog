@@ -2,6 +2,7 @@ import React, { useState, useReducer } from "react";
 import "./index.scss";
 import _ from "lodash";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
+import { useDropzone } from 'react-dropzone';
 import { renameExtensionToMp3, startDownload } from "../utils";
 import TagForm from "./tag-form/index.js";
 
@@ -132,16 +133,22 @@ function reducer(state, action) {
 
 const IndexView = () => {
   const [converted, dispatch] = useReducer(reducer, []);
-  const [logged, setLogged] = useState([]);
+  const { acceptedFiles, getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } = useDropzone({
+    onDrop: handleAudioFileSelected,
+    accept: {
+      'audio/*': [],
+    }
+  });
 
-  window.console.log = (msg, ...args) => {
-    consoleLog(msg, ...args);
-    setLogged([{ msg, timestamp: Date.now() }, ...logged]);
+  const dropZoneStyle = {
+    ...(isFocused ? { borderColor: "#fff" } : {}),
+    ...(isDragAccept ? { borderColor: "#fff", backgroundColor: '#24292c' } : {}),
+    ...(isDragReject ? { borderColor: "red" } : {}),
   };
 
-  async function handleAudioFileSelected(e) {
-    const file = e.target.files[0];
-    if (!file) alert("no file selected");
+  async function handleAudioFileSelected(files) {
+    const file = files[0];
+    if (!file) alert("File type not recognized");
 
     const convert = {
       origName: file.name,
@@ -254,15 +261,15 @@ const IndexView = () => {
 
 
         {_.isEmpty(converted) && window.SharedArrayBuffer && (
-          <div className="no-converts-message">
-            <p>Select an audio file to get started...</p>
+          <div className="no-converts-message"  {...getRootProps({ style: dropZoneStyle })}>
+            <p>Drag and drop files here, or click to select</p>
             <input
               id="file-input"
               type="file"
               accept=".wav,.aiff"
               onChange={handleAudioFileSelected}
               disabled={isFileProcessing}
-
+              {...getInputProps()}
             />
           </div>
         )}
@@ -294,14 +301,17 @@ const IndexView = () => {
             );
           })}
         </ul>
-        {!_.isEmpty(converted) && !isFileProcessing && (
-          <div className="no-converts-message">
-            <div>Select another file...</div>
+
+
+        {!_.isEmpty(converted) && (
+          <div className="no-converts-message"  {...getRootProps({ style: dropZoneStyle })}>
+            <p>Add another audio file</p>
             <input
               id="file-input"
               type="file"
               accept=".wav,.aiff"
               onChange={handleAudioFileSelected}
+              {...getInputProps()}
             />
           </div>
         )}

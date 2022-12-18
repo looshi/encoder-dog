@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useDropzone } from 'react-dropzone'
 import PropTypes from "prop-types";
 import _ from "lodash";
 import "./index.scss";
@@ -20,6 +21,18 @@ const TagForm = ({
   tags,
   isCopyButtonVisible,
 }) => {
+  const { acceptedFiles, getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } = useDropzone({
+    onDrop: handleImageFileSelected,
+    accept: { 'image/*': [] },
+  });
+  ;
+  const dropZoneStyle = {
+    ...(isFocused ? { borderColor: "#fff" } : {}),
+    ...(isDragAccept ? { borderColor: "#fff", backgroundColor: '#24292c' } : {}),
+    ...(isDragReject ? { borderColor: "red" } : {}),
+  };
+
+
   const handleTagChange = (key) => (event) => {
     const updatedTags = _.map(tags, (t) => {
       if (t.key === key) {
@@ -34,9 +47,10 @@ const TagForm = ({
     onDownload(tags, imageFileName);
   };
 
-  async function handleImageFileSelected(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+
+  async function handleImageFileSelected(files) {
+    const file = files[0];
+    if (!file) alert("File type not recognized");
 
     onImageReadyForEncoding(file);
 
@@ -76,16 +90,11 @@ const TagForm = ({
           })}
         </div>
         <div className="image-input">
-          <div className="image-area">
-            {imgSrc && <img src={imgSrc} alt="album art" />}
+
+          <div className="image-dropzone" {...getRootProps({ style: dropZoneStyle })}>
+            {imgSrc ? <img src={imgSrc} alt="album art" /> : <p>Drag and drop image file, or click to select</p>}
           </div>
-          <label htmlFor="image-file-input">Select Image</label>
-          <input
-            id="image-file-input"
-            type="file"
-            accept=".gif,.png,.jpg"
-            onChange={handleImageFileSelected}
-          />
+
         </div>
       </div>
       <div className="button-area">

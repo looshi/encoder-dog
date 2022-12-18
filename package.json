@@ -25,6 +25,7 @@
     "prettier": "^2.0.5",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-dropzone": "^14.2.3",
     "sass": "^1.26.10"
   },
   "private": true,
