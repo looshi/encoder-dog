@@ -16,6 +16,7 @@ const TagForm = ({
   imageFileName,
   isComplete,
   isProgress,
+  isError,
   canDownload,
   mp3Name,
   tags,
@@ -79,7 +80,7 @@ const TagForm = ({
           {_.map(tags, (t) => {
             return (
               <label className="tag-input-label" key={t.label}>
-                <div class="label-text">{t.label}</div>
+                {t.label}
                 <input
                   type="text"
                   onChange={handleTagChange(t.key)}
@@ -111,6 +112,12 @@ const TagForm = ({
           >
             Download {renameExtensionToMp3(mp3Name)}
           </button>
+          {isError ? (
+            <div style={{ marginLeft: 8, color: "yellow" }}>
+              {" "}
+              &#9888; Sorry, an error occurred while encoding.
+            </div>
+          ) : null}
           {isProgress ? (
             <div style={{ marginLeft: 8 }}> Encoding In Process...</div>
           ) : null}

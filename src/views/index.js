@@ -111,16 +111,14 @@ function reducer(state, action) {
 
         return s;
       });
-    case "ERROR":
+    case "TRANSCODE_ERROR":
       return _.map(state, (s) => {
         if (s.origName === action.payload.origName) {
           return {
-            origName: action.payload.origName,
-            fileName: action.payload.fileName,
+            ...s,
             progress: false,
             complete: false,
             error: true,
-            url: null,
           };
         }
         return s;
@@ -131,19 +129,13 @@ function reducer(state, action) {
 
 const IndexView = () => {
   const [converted, dispatch] = useReducer(reducer, []);
-  const {
-    acceptedFiles,
-    getRootProps,
-    getInputProps,
-    isFocused,
-    isDragAccept,
-    isDragReject,
-  } = useDropzone({
-    onDrop: handleAudioFileSelected,
-    accept: {
-      "audio/*": [],
-    },
-  });
+  const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
+    useDropzone({
+      onDrop: handleAudioFileSelected,
+      accept: {
+        "image/*": [],
+      },
+    });
 
   const dropZoneStyle = {
     ...(isFocused ? { borderColor: "#fff" } : {}),
@@ -212,24 +204,30 @@ const IndexView = () => {
     // One arg per parameter is required for run, thus the spread "..."
     // e.g. ffmpeg.run('-i', 'input', 'output')
     const runArgs = _.compact(_.flattenDeep(args));
-    await ffmpeg.run(...runArgs);
+    try {
+      await ffmpeg.run(...runArgs);
+      // write the file to the object url for the download link
+      const data = ffmpeg.FS("readFile", "./" + outputFileName);
+      const url = URL.createObjectURL(
+        new Blob([data.buffer], { type: "audio/mpeg" })
+      );
 
-    // write the file to the object url for the download link
-    const data = ffmpeg.FS("readFile", "./" + outputFileName);
-    const url = URL.createObjectURL(
-      new Blob([data.buffer], { type: "audio/mpeg" })
-    );
+      setTimeout(() => {
+        dispatch({
+          type: "TRANSCODE_COMPLETED",
+          payload: { origName: inputFileName },
+        });
+      }, 2000);
 
-    setTimeout(() => {
+      // remove "output" from the filename
+      const outFileName = outputFileName.substring("output_".length);
+      startDownload(url, outFileName);
+    } catch (e) {
       dispatch({
-        type: "TRANSCODE_COMPLETED",
+        type: "TRANSCODE_ERROR",
         payload: { origName: inputFileName },
       });
-    }, 2000);
-
-    // remove "output" from the filename
-    const outFileName = outputFileName.substring("output_".length);
-    startDownload(url, outFileName);
+    }
   };
 
   const onImageReadyForEncoding = (origName) => async (file) => {
@@ -290,7 +288,6 @@ const IndexView = () => {
           {_.map(converted, (c, index) => {
             return (
               <li key={c.origName}>
-                {c.error && <div>Error</div>}
                 <TagForm
                   isCopyButtonVisible={index > 0}
                   tags={c.tags}
@@ -305,6 +302,7 @@ const IndexView = () => {
                   imageFileName={c.imageFileName}
                   isComplete={c.complete}
                   isProgress={c.progress}
+                  isError={c.error}
                   canDownload={!_.some(converted, "progress")}
                 />
               </li>
