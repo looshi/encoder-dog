@@ -1,6 +1,6 @@
 # Encoder Dog
 
-React app that converts audio files to mp3 using ffmpeg wasm.
+React app that converts audio files to mp3 using ffmpeg wasm.  Allows the user to add mp3 metadata like artist, track number, and album art.
 
 View Running Project: https://looshi.github.io/encoder-dog/
 
