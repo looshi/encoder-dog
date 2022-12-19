@@ -4,6 +4,9 @@ React app that converts audio files to mp3 using ffmpeg wasm.
 
 View Running Project: https://looshi.github.io/encoder-dog/
 
+![Screenshot of project](https://raw.githubusercontent.com/looshi/encoder-dog/master/encoder-dog-screenshot.png)
+
+
 ### Install
 ```sh
 git clone git@github.com:looshi/encoder-dog.git
