@@ -1,14 +1,27 @@
-# encoder-dog
+# Encoder Dog
 
-encodes audio files
+React app that converts audio files to mp3 using ffmpeg wasm.
 
-## build issue:
+View Running Project: https://looshi.github.io/encoder-dog/
 
-After `npm run build` ( right now )
-find this char: ſ
-and give it quotes to be a valid json string.
-e.g. change `ſ: value` to `"ſ": value`
+### Install
+```sh
+git clone git@github.com:looshi/encoder-dog.git
+cd encoder-dog
+npm i
+```
 
-also,
-to run on some hosts, remove the "/" root path for css and js bundle in
-index.html.
+### Run Locally
+```sh
+npm run start
+```
+
+### Build
+```sh
+npm run build
+```
+
+### Resources
+ffmpeg: https://ffmpeg.org
+wasm: https://webassembly.org
+ffmpegwasm: https://ffmpegwasm.netlify.app
