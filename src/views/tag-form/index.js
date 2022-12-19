@@ -17,6 +17,7 @@ const TagForm = ({
   isComplete,
   isProgress,
   isError,
+  progressRatio,
   canDownload,
   mp3Name,
   tags,
@@ -63,7 +64,7 @@ const TagForm = ({
   }
 
   return (
-    <details open={!isComplete}>
+    <details open>
       <summary>{origName}</summary>
       <div className="tag-form">
         <div className="tags-input">
@@ -119,7 +120,10 @@ const TagForm = ({
             </div>
           ) : null}
           {isProgress ? (
-            <div style={{ marginLeft: 8 }}> Encoding In Process...</div>
+            <div style={{ marginLeft: 8 }}> {progressRatio ?? 0}% complete</div>
+          ) : null}
+          {isComplete ? (
+            <div style={{ marginLeft: 8 }}> Encoding Complete &#10004;</div>
           ) : null}
           {!canDownload && !isProgress ? (
             <div style={{ marginLeft: 8 }}>

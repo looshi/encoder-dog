@@ -1,4 +1,4 @@
-import React, { useReducer } from "react";
+import React, { useReducer, useEffect } from "react";
 import "./index.scss";
 import _ from "lodash";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
@@ -7,18 +7,6 @@ import { renameExtensionToMp3, startDownload } from "../utils";
 import TagForm from "./tag-form/index.js";
 
 const path = new URL("./ffmpeg-core.js", document.location).href;
-
-const ffmpeg = createFFmpeg({
-  corePath: path,
-  log: true,
-});
-
-const initialize = async () => {
-  if (!ffmpeg.isLoaded()) {
-    await ffmpeg.load();
-  }
-};
-initialize();
 
 const initialTags = [
   { label: "Artist", key: "artist" },
@@ -76,6 +64,28 @@ function reducer(state, action) {
         }
         return s;
       });
+    case "TRANSCODE_PROGRESS":
+      // Progress is global due to ffmpeg restriction of 1 track at a time
+      // This ratio will be set for all tracks, so to determine progress for current
+      // check both state.item.progress and also state.item.progressRatio
+      return _.map(state, (s) => {
+        return {
+          ...s,
+          progressRatio: action.payload.progressRatio,
+        };
+      });
+    case "TRANSCODE_ERROR":
+      return _.map(state, (s) => {
+        if (s.origName === action.payload.origName) {
+          return {
+            ...s,
+            progress: false,
+            complete: false,
+            error: true,
+          };
+        }
+        return s;
+      });
     case "IMAGE_READY_FOR_DISPLAY":
       return _.map(state, (s) => {
         if (s.origName === action.payload.origName) {
@@ -111,29 +121,41 @@ function reducer(state, action) {
 
         return s;
       });
-    case "TRANSCODE_ERROR":
-      return _.map(state, (s) => {
-        if (s.origName === action.payload.origName) {
-          return {
-            ...s,
-            progress: false,
-            complete: false,
-            error: true,
-          };
-        }
-        return s;
-      });
   }
   return state;
 }
 
+
+let ffmpeg;
+
 const IndexView = () => {
   const [converted, dispatch] = useReducer(reducer, []);
+
+  useEffect(() => {
+    async function init() {
+      ffmpeg = await createFFmpeg({
+        corePath: path,
+        log: true,
+        progress: (params) => {
+          const progressRatio = Math.floor(Math.round(params.ratio * 100));
+          dispatch({
+            type: "TRANSCODE_PROGRESS",
+            payload: { progressRatio },
+          });
+        },
+      });
+      if (!ffmpeg.isLoaded()) {
+        await ffmpeg.load();
+      }
+    }
+    init();
+  }, []);
+
   const { getRootProps, getInputProps, isFocused, isDragAccept, isDragReject } =
     useDropzone({
       onDrop: handleAudioFileSelected,
       accept: {
-        "image/*": [],
+        "audio/*": [],
       },
     });
 
@@ -212,12 +234,10 @@ const IndexView = () => {
         new Blob([data.buffer], { type: "audio/mpeg" })
       );
 
-      setTimeout(() => {
-        dispatch({
-          type: "TRANSCODE_COMPLETED",
-          payload: { origName: inputFileName },
-        });
-      }, 2000);
+      dispatch({
+        type: "TRANSCODE_COMPLETED",
+        payload: { origName: inputFileName },
+      });
 
       // remove "output" from the filename
       const outFileName = outputFileName.substring("output_".length);
@@ -273,14 +293,6 @@ const IndexView = () => {
             {...getRootProps({ style: dropZoneStyle })}
           >
             <p>Drag and drop files here, or click to select</p>
-            <input
-              id="file-input"
-              type="file"
-              accept=".wav,.aiff"
-              onChange={handleAudioFileSelected}
-              disabled={isFileProcessing}
-              {...getInputProps()}
-            />
           </div>
         )}
 
@@ -302,6 +314,7 @@ const IndexView = () => {
                   imageFileName={c.imageFileName}
                   isComplete={c.complete}
                   isProgress={c.progress}
+                  progressRatio={c.progressRatio}
                   isError={c.error}
                   canDownload={!_.some(converted, "progress")}
                 />
