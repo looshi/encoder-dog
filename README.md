@@ -22,9 +22,22 @@ npm run start
 ### Build
 ```sh
 npm run build
+# This will run webpack build and create a bundle in the "dist" folder
+# This will also try to copy the built files to my local github pages repo
+# Tweak that part of build to your own needs
 ```
+
+### SharedArrayBuffer
+
+In order for SharedArrayBuffer to work, specific headers need to be set: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer#security_requirements
+
+This app will be hosted on github pages, in order to get the headers set correctly on github pages this approach is used ( in /src/static/enable-threads.js ):
+
+https://github.com/gzuidhof/coi-serviceworker
 
 ### Resources
 ffmpeg: https://ffmpeg.org
+
 wasm: https://webassembly.org
+
 ffmpegwasm: https://ffmpegwasm.netlify.app
