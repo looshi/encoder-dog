@@ -1,0 +1,35 @@
+{
+  "parser": "@babel/eslint-parser",
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:prettier/recommended",
+    "plugin:jsx-a11y/recommended"
+  ],
+  "plugins": [
+    "react-hooks"
+  ],
+  "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error"
+  },
+  "globals": {
+    "alert": true,
+    "Blob": true,
+    "console": true,
+    "document": true,
+    "fetch": true,
+    "FileReader": true,
+    "Headers": true,
+    "navigator": true,
+    "Request": true,
+    "Response": true,
+    "URL": true,
+    "window": true
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
+}

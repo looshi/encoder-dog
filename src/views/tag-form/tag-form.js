@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useDropzone } from "react-dropzone";
 import PropTypes from "prop-types";
 import _ from "lodash";
@@ -149,5 +149,10 @@ TagForm.propTypes = {
   isComplete: PropTypes.bool.isRequired,
   mp3Name: PropTypes.string.isRequired,
   tags: PropTypes.array.isRequired,
+  imageFileName: PropTypes.string,
+  isProgress: PropTypes.bool.isRequired,
+  isError: PropTypes.bool.isRequired,
+  progressRatio: PropTypes.number,
+  canDownload: PropTypes.bool.isRequired,
 };
 export default TagForm;

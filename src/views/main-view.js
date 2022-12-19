@@ -26,6 +26,7 @@ const initialTags = [
 function reducer(state, action) {
   switch (action.type) {
     case "FILE_SELECTED":
+      // eslint-disable-next-line no-case-declarations
       const item = {
         origName: action.payload.origName,
         fileName: action.payload.fileName,
@@ -124,7 +125,6 @@ function reducer(state, action) {
   }
   return state;
 }
-
 
 let ffmpeg;
 
@@ -274,8 +274,6 @@ const MainView = () => {
       payload: { origName, dataUrl },
     });
   };
-
-  const isFileProcessing = _.some(converted, (c) => c.progress);
 
   return (
     <div id="index-view">

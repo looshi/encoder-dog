@@ -1,9 +1,11 @@
 /* Edited version of: coi-serviceworker v0.1.6 - Guido Zuidhof, licensed under MIT */
 // From here: https://github.com/gzuidhof/coi-serviceworker
-if (typeof window === 'undefined') {
+/* eslint-disable no-undef */
+if (typeof window === "undefined") {
   self.addEventListener("install", () => self.skipWaiting());
-  self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
+  self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
 
+  // eslint-disable-next-line no-inner-declarations
   async function handleFetch(request) {
     if (request.cache === "only-if-cached" && request.mode !== "same-origin") {
       return;
@@ -26,7 +28,7 @@ if (typeof window === 'undefined') {
       });
     }
 
-    let r = await fetch(request).catch(e => console.error(e));
+    let r = await fetch(request).catch((e) => console.error(e));
 
     if (r.status === 0) return r;
 
@@ -34,23 +36,32 @@ if (typeof window === 'undefined') {
     headers.set("Cross-Origin-Embedder-Policy", "credentialless"); // or: require-corp
     headers.set("Cross-Origin-Opener-Policy", "same-origin");
 
-    return new Response(r.body, { status: r.status, statusText: r.statusText, headers });
+    return new Response(r.body, {
+      status: r.status,
+      statusText: r.statusText,
+      headers,
+    });
   }
 
   self.addEventListener("fetch", function (e) {
     e.respondWith(handleFetch(e.request)); // respondWith must be executed synchonously (but can be passed a Promise)
   });
-
 } else {
   (async function () {
     if (window.crossOriginIsolated !== false) return;
 
-    const registration = await navigator.serviceWorker.register(window.document.currentScript.src).catch(e => console.error("COOP/COEP Service Worker failed to register:", e));
+    const registration = await navigator.serviceWorker
+      .register(window.document.currentScript.src)
+      .catch((e) =>
+        console.error("COOP/COEP Service Worker failed to register:", e)
+      );
     if (registration) {
       console.log("COOP/COEP Service Worker registered", registration.scope);
 
       registration.addEventListener("updatefound", () => {
-        console.log("Reloading page to make use of updated COOP/COEP Service Worker.");
+        console.log(
+          "Reloading page to make use of updated COOP/COEP Service Worker."
+        );
         window.location.reload();
       });
 
