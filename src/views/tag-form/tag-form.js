@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import PropTypes from "prop-types";
 import _ from "lodash";
-import "./index.scss";
+import "./styles.scss";
 import { renameExtensionToMp3 } from "../../utils";
 
 const TagForm = ({

@@ -1,10 +1,10 @@
 import React, { useReducer, useEffect } from "react";
-import "./index.scss";
+import "./styles.scss";
 import _ from "lodash";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 import { useDropzone } from "react-dropzone";
 import { renameExtensionToMp3, startDownload } from "../utils";
-import TagForm from "./tag-form/index.js";
+import TagForm from "./tag-form/tag-form.js";
 
 const path = new URL("./ffmpeg-core.js", document.location).href;
 
@@ -128,7 +128,7 @@ function reducer(state, action) {
 
 let ffmpeg;
 
-const IndexView = () => {
+const MainView = () => {
   const [converted, dispatch] = useReducer(reducer, []);
 
   useEffect(() => {
@@ -343,4 +343,4 @@ const IndexView = () => {
   );
 };
 
-export default IndexView;
+export default MainView;

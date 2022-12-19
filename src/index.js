@@ -1,5 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import IndexView from './views/index';
+import MainView from './views/main-view';
 
-ReactDOM.render(<IndexView />, document.getElementById("root"));
+ReactDOM.render(<MainView />, document.getElementById("root"));
