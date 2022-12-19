@@ -27,13 +27,11 @@ npm run build
 # Tweak that part of build to your own needs
 ```
 
-### SharedArrayBuffer
+### SharedArrayBuffer Constraints
 
-In order for SharedArrayBuffer to work, specific headers need to be set: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer#security_requirements
+Ffmpeg wasm uses SharedArrayBuffer.  Browsers restrict the use of SharedArrayBuffer to a secure context: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer#security_requirements .
 
-This app will be hosted on github pages, in order to get the headers set correctly on github pages this approach is used ( in /src/static/enable-threads.js ):
-
-https://github.com/gzuidhof/coi-serviceworker
+Specific headers must be set by the server to allow the browser to be run in a secure context.  Since this project is hosted on github pages which doesn't allow setting these headers via configuration, a solution based on this project is used ( in src/static/enable-threads.js ): https://github.com/gzuidhof/coi-serviceworker .
 
 ### Resources
 ffmpeg: https://ffmpeg.org
