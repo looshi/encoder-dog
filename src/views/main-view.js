@@ -4,132 +4,14 @@ import _ from "lodash";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 import { useDropzone } from "react-dropzone";
 import { renameExtensionToMp3, startDownload } from "../utils";
-import TagForm from "./tag-form/tag-form.js";
-
+import { TagForm } from "./tag-form/tag-form.js";
+import { tracksReducer } from "./state/tracks-reducer.js";
 const path = new URL("./ffmpeg-core.js", document.location).href;
-
-const initialTags = [
-  { label: "Artist", key: "artist" },
-  { label: "Album", key: "album" },
-  { label: "Year", key: "date" },
-  { label: "Genre", key: "genre" },
-  { label: "Track Number", key: "track" },
-  { label: "Disc Number", key: "disc" },
-  { label: "Comments", key: "comment" },
-  { label: "Description", key: "description" },
-  { label: "Album Artist", key: "album_artist" },
-  { label: "Grouping", key: "grouping" },
-  { label: "Composer", key: "composer" },
-  { label: "Producer", key: "producer" },
-];
-
-function reducer(state, action) {
-  switch (action.type) {
-    case "FILE_SELECTED":
-      // eslint-disable-next-line no-case-declarations
-      const item = {
-        origName: action.payload.origName,
-        fileName: action.payload.fileName,
-        progress: false,
-        complete: false,
-        error: false,
-        url: null,
-        tags: initialTags,
-        imageFileName: null,
-      };
-      return [...state, item];
-    case "TRANSCODE_STARTED":
-      return _.map(state, (s) => {
-        if (s.origName === action.payload.origName) {
-          return {
-            ...s,
-            progress: true,
-            complete: false,
-            error: false,
-          };
-        }
-        return s;
-      });
-    case "TRANSCODE_COMPLETED":
-      return _.map(state, (s) => {
-        if (s.origName === action.payload.origName) {
-          return {
-            ...s,
-            // origName: action.payload.origName,
-            // fileName: action.payload.origName,
-            progress: false,
-            complete: true,
-            error: false,
-            // url: action.payload.url,
-          };
-        }
-        return s;
-      });
-    case "TRANSCODE_PROGRESS":
-      // Progress is global due to ffmpeg restriction of 1 track at a time
-      // This ratio will be set for all tracks, so to determine progress for current
-      // check both state.item.progress and also state.item.progressRatio
-      return _.map(state, (s) => {
-        return {
-          ...s,
-          progressRatio: action.payload.progressRatio,
-        };
-      });
-    case "TRANSCODE_ERROR":
-      return _.map(state, (s) => {
-        if (s.origName === action.payload.origName) {
-          return {
-            ...s,
-            progress: false,
-            complete: false,
-            error: true,
-          };
-        }
-        return s;
-      });
-    case "IMAGE_READY_FOR_DISPLAY":
-      return _.map(state, (s) => {
-        if (s.origName === action.payload.origName) {
-          return {
-            ...s,
-            img: action.payload.dataUrl,
-            imageFileName: `${action.payload.origName}__image`,
-          };
-        }
-        return s;
-      });
-    case "TAG_CHANGED":
-      return _.map(state, (s) => {
-        if (s.origName === action.payload.origName) {
-          return {
-            ...s,
-            tags: action.payload.tags,
-          };
-        }
-        return s;
-      });
-    case "COPY_PREVIOUS_TAGS":
-      return _.map(state, (s, index) => {
-        if (s.origName === action.payload.origName) {
-          const previous = state[index - 1];
-          return {
-            ...s,
-            tags: [...previous.tags],
-            img: previous.img,
-            imageFileName: previous.imageFileName,
-          };
-        }
-
-        return s;
-      });
-  }
-  return state;
-}
 
 let ffmpeg;
 
 const MainView = () => {
-  const [converted, dispatch] = useReducer(reducer, []);
+  const [tracks, dispatch] = useReducer(tracksReducer, []);
 
   useEffect(() => {
     async function init() {
@@ -137,7 +19,10 @@ const MainView = () => {
         corePath: path,
         log: true,
         progress: (params) => {
-          const progressRatio = Math.floor(Math.round(params.ratio * 100));
+          const progressRatio = Math.max(
+            Math.floor(Math.round(params.ratio * 100)),
+            0
+          );
           dispatch({
             type: "TRANSCODE_PROGRESS",
             payload: { progressRatio },
@@ -183,6 +68,10 @@ const MainView = () => {
     // inputFileName is stored in memory after transcode complete
     // should be able to read / write to the file
     const outputFileName = "output_" + renameExtensionToMp3(inputFileName);
+    dispatch({
+      type: "TRANSCODE_PROGRESS",
+      payload: { progressRatio: 0 },
+    });
     dispatch({
       type: "TRANSCODE_STARTED",
       payload: { origName: inputFileName },
@@ -285,7 +174,7 @@ const MainView = () => {
           </div>
         )}
 
-        {_.isEmpty(converted) && window.SharedArrayBuffer && (
+        {_.isEmpty(tracks) && window.SharedArrayBuffer && (
           <div
             className="no-converts-message intro"
             {...getRootProps({ style: dropZoneStyle })}
@@ -295,33 +184,29 @@ const MainView = () => {
         )}
 
         <ul>
-          {_.map(converted, (c, index) => {
+          {_.map(tracks, (track, index) => {
             return (
-              <li key={c.origName}>
+              <li key={track.origName}>
                 <TagForm
                   isCopyButtonVisible={index > 0}
-                  tags={c.tags}
-                  origName={c.origName}
-                  mp3Name={c.origName}
-                  onTagChange={onTagChange(c.origName)}
-                  onDownload={onDownload(c.origName)}
-                  onImageReadyForEncoding={onImageReadyForEncoding(c.origName)}
-                  onImageReadyForDisplay={onImageReadyForDisplay(c.origName)}
-                  onCopyPreviousTags={onCopyPreviousTags(c.origName)}
-                  imgSrc={c.img}
-                  imageFileName={c.imageFileName}
-                  isComplete={c.complete}
-                  isProgress={c.progress}
-                  progressRatio={c.progressRatio}
-                  isError={c.error}
-                  canDownload={!_.some(converted, "progress")}
+                  track={track}
+                  onTagChange={onTagChange(track.origName)}
+                  onDownload={onDownload(track.origName)}
+                  onImageReadyForEncoding={onImageReadyForEncoding(
+                    track.origName
+                  )}
+                  onImageReadyForDisplay={onImageReadyForDisplay(
+                    track.origName
+                  )}
+                  onCopyPreviousTags={onCopyPreviousTags(track.origName)}
+                  canDownload={!_.some(tracks, "isProgress")}
                 />
               </li>
             );
           })}
         </ul>
 
-        {!_.isEmpty(converted) && (
+        {!_.isEmpty(tracks) && (
           <div
             className="no-converts-message"
             {...getRootProps({ style: dropZoneStyle })}

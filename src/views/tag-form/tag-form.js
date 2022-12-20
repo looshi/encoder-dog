@@ -5,24 +5,27 @@ import _ from "lodash";
 import "./styles.scss";
 import { renameExtensionToMp3 } from "../../utils";
 
-const TagForm = ({
-  origName,
+export const TagForm = ({
+  canDownload,
+  isCopyButtonVisible,
+  onCopyPreviousTags,
   onDownload,
-  onTagChange,
   onImageReadyForEncoding,
   onImageReadyForDisplay,
-  onCopyPreviousTags,
-  imgSrc,
-  imageFileName,
-  isComplete,
-  isProgress,
-  isError,
-  progressRatio,
-  canDownload,
-  mp3Name,
-  tags,
-  isCopyButtonVisible,
+  onTagChange,
+  track,
 }) => {
+  const {
+    imageFileName,
+    img,
+    isComplete,
+    isError,
+    isProgress,
+    progressRatio,
+    tags,
+    origName,
+  } = track;
+
   const { getRootProps, isFocused, isDragAccept, isDragReject } = useDropzone({
     onDrop: handleImageFileSelected,
     accept: { "image/*": [] },
@@ -96,8 +99,8 @@ const TagForm = ({
             className="image-dropzone"
             {...getRootProps({ style: dropZoneStyle })}
           >
-            {imgSrc ? (
-              <img src={imgSrc} alt="album art" />
+            {img ? (
+              <img src={img} alt="album art" />
             ) : (
               <p>Drag and drop image file, or click to select</p>
             )}
@@ -111,7 +114,7 @@ const TagForm = ({
             className="save-button"
             onClick={handleSave}
           >
-            Download {renameExtensionToMp3(mp3Name)}
+            Download {renameExtensionToMp3(origName)}
           </button>
           {isError ? (
             <div style={{ marginLeft: 8, color: "yellow" }}>
@@ -138,21 +141,21 @@ const TagForm = ({
 };
 
 TagForm.propTypes = {
-  isCopyButtonVisible: PropTypes.bool.isRequired,
-  origName: PropTypes.string.isRequired,
-  onDownload: PropTypes.func.isRequired,
-  onTagChange: PropTypes.func.isRequired,
-  onImageReadyForEncoding: PropTypes.func.isRequired,
-  onImageReadyForDisplay: PropTypes.func.isRequired,
-  onCopyPreviousTags: PropTypes.func.isRequired,
-  imgSrc: PropTypes.string,
-  isComplete: PropTypes.bool.isRequired,
-  mp3Name: PropTypes.string.isRequired,
-  tags: PropTypes.array.isRequired,
-  imageFileName: PropTypes.string,
-  isProgress: PropTypes.bool.isRequired,
-  isError: PropTypes.bool.isRequired,
-  progressRatio: PropTypes.number,
   canDownload: PropTypes.bool.isRequired,
+  isCopyButtonVisible: PropTypes.bool.isRequired,
+  onCopyPreviousTags: PropTypes.func.isRequired,
+  onDownload: PropTypes.func.isRequired,
+  onImageReadyForDisplay: PropTypes.func.isRequired,
+  onImageReadyForEncoding: PropTypes.func.isRequired,
+  onTagChange: PropTypes.func.isRequired,
+  track: PropTypes.shape({
+    imageFileName: PropTypes.string,
+    img: PropTypes.string,
+    isComplete: PropTypes.bool.isRequired,
+    isError: PropTypes.bool.isRequired,
+    isProgress: PropTypes.bool.isRequired,
+    origName: PropTypes.string.isRequired,
+    progressRatio: PropTypes.number,
+    tags: PropTypes.array,
+  }),
 };
-export default TagForm;
