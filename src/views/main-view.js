@@ -19,10 +19,9 @@ const MainView = () => {
         corePath: path,
         log: true,
         progress: (params) => {
-          const progressRatio = Math.max(
-            Math.floor(Math.round(params.ratio * 100)),
-            0
-          );
+          const progressRatio = params.duration
+            ? 0
+            : Math.max(Math.floor(Math.round(params.ratio * 100)), 0);
           dispatch({
             type: "TRANSCODE_PROGRESS",
             payload: { progressRatio },

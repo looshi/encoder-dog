@@ -66,6 +66,11 @@ export const TagForm = ({
     img_reader.readAsDataURL(file);
   }
 
+  const buttonProgressStyle = {
+    width: `${progressRatio ?? 0}%`,
+    opacity: progressRatio < 100 ? 1 : 0,
+  };
+
   return (
     <details open>
       <summary>{origName}</summary>
@@ -108,14 +113,24 @@ export const TagForm = ({
         </div>
       </div>
       <div className="button-area">
-        <div style={{ display: "flex", alignItems: "baseline", width: "100%" }}>
-          <button
-            disabled={isProgress || !canDownload}
-            className="save-button"
-            onClick={handleSave}
-          >
-            Download {renameExtensionToMp3(origName)}
-          </button>
+        <div className="download-button-container">
+          <div>
+            <button
+              disabled={isProgress || !canDownload}
+              className="save-button"
+              onClick={handleSave}
+            >
+              Save and Download {renameExtensionToMp3(origName)}
+            </button>
+            {progressRatio ? (
+              <div
+                className="download-button-progress"
+                style={{ ...buttonProgressStyle }}
+              ></div>
+            ) : (
+              <div style={{ height: 1 }}></div>
+            )}
+          </div>
           {isError ? (
             <div style={{ marginLeft: 8, color: "yellow" }}>
               {" "}
@@ -123,7 +138,7 @@ export const TagForm = ({
             </div>
           ) : null}
           {isProgress ? (
-            <div style={{ marginLeft: 8 }}> {progressRatio ?? 0}% complete</div>
+            <div style={{ marginLeft: 8 }}> Encoding {progressRatio ?? 0}%</div>
           ) : null}
           {isComplete ? (
             <div style={{ marginLeft: 8 }}> Encoding Complete &#10004;</div>

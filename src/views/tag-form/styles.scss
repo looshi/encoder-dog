@@ -65,7 +65,25 @@ details {
 .button-area {
   button {
     display: block;
+  }
+
+  .download-button-container {
+    display: flex;
+    align-items: baseline;
+    width: 100%;
     margin-top: 32px;
+  }
+
+  .download-button-progress {
+    background-color: #436837;
+    border-left: 1px solid colors.$backgroundMedium;
+    border-right: 1px solid colors.$backgroundMedium;
+    box-sizing: border-box;
+    height: 1;
+    transition-property: all;
+    transition-timing-function: ease-out;
+    transition-duration: 300ms;
+    width: 0;
   }
 }
 
