@@ -122,7 +122,7 @@ export const TagForm = ({
             >
               Save and Download {renameExtensionToMp3(origName)}
             </button>
-            {progressRatio ? (
+            {isProgress && progressRatio ? (
               <div
                 className="download-button-progress"
                 style={{ ...buttonProgressStyle }}
