@@ -167,9 +167,12 @@ const MainView = () => {
     <div id="index-view">
       <div className="convert-list">
         {!window.SharedArrayBuffer && (
-          <div className="no-converts-message">
-            <p>Oops, this browser can not run ffmpeg.</p>{" "}
-            <p>Try Chrome Browser.</p>
+          <div className="oops-message">
+            <div class="alert-icon">
+              &#9888;
+            </div>
+            <p>We're sorry, this browser can not run ffmpeg.</p>
+            <p>Try Chrome Browser on desktop.</p>
           </div>
         )}
 

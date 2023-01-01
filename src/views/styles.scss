@@ -95,6 +95,7 @@ button {
       color: colors.$colorDark;
       margin: 24px 60px;
       padding: 32px;
+      min-width: 364px;
     }
 
     a:hover {
@@ -121,6 +122,26 @@ button {
 
     input {
       margin-top: 16px;
+    }
+  }
+
+  .oops-message {
+    margin: 60px 120px;
+    padding: 20px;
+    text-align: center;
+
+    .alert-icon {
+      color: yellow;
+      font-size: 72px;
+    }
+  }
+
+
+  @media screen and (max-width: 600px) {
+
+    .no-converts-message.intro,
+    .oops-message {
+      margin: 60px 8px;
     }
   }
 }
